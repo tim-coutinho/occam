@@ -1591,9 +1591,30 @@ DefinePyFunction(Model, new) {
 /****** Report ******/
 /************************/
 
+//getters - Capstone Team A
+DefinePyFunction(Report, getMaxNameLength){
+    Report *report = ObjRef(self, Report);
+
+    return Py_BuildValue('i', report->maxNameLength);
+}
+
+DefinePyFunction(Report, getHTMLmode){
+    Report *report = ObjRef(self, Report);
+
+    return Py_BuildValue('b', report->htmlMode);
+}
+
+DefinePyFunction(Report, getModelCount){
+    Report *report = ObjRef(self, Report);
+
+    return Py_BuildValue('c', report->modelCount);
+}
+
+//getters - Capstone Team A End
+
 // Object* get(char *name)
 DefinePyFunction(Report, get) {
-    Report *report = ObjRef(self, Report);
+    Report *report = ObjRef(self, Report);      //Creates a reference to a variable of the Python wrapper type
     TRACE_FN("Report::get", __LINE__, report);
     char *name;
     PyArg_ParseTuple(args, "s", &name);
@@ -1856,7 +1877,7 @@ DefinePyFunction(Report, bestModelData) {
 }
 
 
-static struct PyMethodDef Report_methods[] = { PyMethodDef(Report, bestModelName), PyMethodDef(Report, bestModelData), PyMethodDef(Report, get), PyMethodDef(Report, addModel),
+static struct PyMethodDef Report_methods[] = { PyMethodDef(Report, getMaxNameLength), PyMethodDef(Report, bestModelName), PyMethodDef(Report, bestModelData), PyMethodDef(Report, get), PyMethodDef(Report, addModel),
         PyMethodDef(Report, setDefaultFitModel), PyMethodDef(Report, setAttributes), PyMethodDef(Report, sort),
         PyMethodDef(Report, printReport), PyMethodDef(Report, writeReport), PyMethodDef(Report, setSeparator),
         PyMethodDef(Report, printResiduals), PyMethodDef(Report, printConditional_DV), PyMethodDef(Report, variableList), PyMethodDef(Report, dvName), PyMethodDef(Report, bestModelBIC), { NULL, NULL, 0 } };
@@ -1933,7 +1954,7 @@ extern "C" {
 
 void initoccam() {
     PyObject *m, *d;
-    m = Py_InitModule("occam", occam_methods);
+    m = Py_InitModule("occam", occam_methods); 
     d = PyModule_GetDict(m);
     ErrorObject = Py_BuildValue("s", "occam.error");
     PyDict_SetItemString(d, "error", ErrorObject);
