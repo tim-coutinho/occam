@@ -66,6 +66,8 @@ DefinePyObject(Relation);
 DefinePyObject(Model);
 DefinePyObject(Report);
 
+DefinePyObject(Manager);
+
 /**************************/
 /****** VBMManager ******/
 /**************************/
@@ -1592,22 +1594,35 @@ DefinePyFunction(Model, new) {
 /************************/
 
 //getters - Capstone Team A
-DefinePyFunction(Report, getMaxNameLength){
-    Report *report = ObjRef(self, Report);
 
-    return Py_BuildValue('i', report->maxNameLength);
+DefinePyFunction(Report, getRelation){
+    Report* report = ObjRef(self, Report);
+    PRelation *list = ObjNew(Relation);
+    list->obj = report->getRelation();
+
+    Py_INCREF(var_list);
+
+    return (PyObject*) list;
 }
 
-DefinePyFunction(Report, getHTMLmode){
-    Report *report = ObjRef(self, Report);
+DefinePyFunction(Report, getModel){
+    Report* report = ObjRef(self, Report);
+    PModel *list = ObjNew(Model);
+    list->obj = report->getModel();
 
-    return Py_BuildValue('b', report->htmlMode);
+    Py_INCREF(list);
+
+    return (PyObject*) list;
 }
 
-DefinePyFunction(Report, getModelCount){
-    Report *report = ObjRef(self, Report);
+DefinePyFunction(Report, getManager){
+    Report* report = ObjRef(self, Report);
+    PManager *list = ObjNew(Manager);
+    list->obj = report -> getManager();
 
-    return Py_BuildValue('c', report->modelCount);
+    Py_INCREF(list);
+
+    return (PyObject*) list;
 }
 
 //getters - Capstone Team A End
@@ -1877,7 +1892,9 @@ DefinePyFunction(Report, bestModelData) {
 }
 
 
-static struct PyMethodDef Report_methods[] = { PyMethodDef(Report, getMaxNameLength), PyMethodDef(Report, bestModelName), PyMethodDef(Report, bestModelData), PyMethodDef(Report, get), PyMethodDef(Report, addModel),
+static struct PyMethodDef Report_methods[] = { 
+        PyMethodDef(Report, getRelation), PyMethodDef(Report, getModel), PyMethodDef(Report, getModel),
+        PyMethodDef(Report, bestModelName), PyMethodDef(Report, bestModelData), PyMethodDef(Report, get), PyMethodDef(Report, addModel),
         PyMethodDef(Report, setDefaultFitModel), PyMethodDef(Report, setAttributes), PyMethodDef(Report, sort),
         PyMethodDef(Report, printReport), PyMethodDef(Report, writeReport), PyMethodDef(Report, setSeparator),
         PyMethodDef(Report, printResiduals), PyMethodDef(Report, printConditional_DV), PyMethodDef(Report, variableList), PyMethodDef(Report, dvName), PyMethodDef(Report, bestModelBIC), { NULL, NULL, 0 } };
