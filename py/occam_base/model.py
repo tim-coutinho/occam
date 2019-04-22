@@ -1,4 +1,4 @@
-import occam
+from occam import Model as Model_cpp
 
 
 class Model:
@@ -6,12 +6,12 @@ class Model:
     Wrapper class for Model
     """
 
-    def __init__(self, ref=None):
+    def __init__(self, ref=None, size=1):
         """
         :param: ref: the reference to the Model object returned from the CPP engine
         """
         # Create new reference if one not given
-        self._ref = ref
+        self._ref = ref or Model_cpp(size)
         self._id = 0
 
     @property

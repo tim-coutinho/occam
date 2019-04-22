@@ -1,4 +1,4 @@
-import occam
+from occam import VBMManager as VBMManager_cpp
 from variable_list import VariableList
 
 
@@ -12,7 +12,7 @@ class VBMManager:
         :param: ref: the reference to the VBMManager object returned from the CPP engine
         """
         # Create new reference if one not given
-        self._ref = ref or occam.VBMManager()
+        self._ref = ref or VBMManager_cpp()
         self._model = None
 
     @property

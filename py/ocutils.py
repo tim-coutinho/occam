@@ -768,10 +768,8 @@ class OCUtils:
         hide_iv = self._hide_isolated
         hide_dv = self._graph_hideDV
         full_var_names = self._full_var_names
-        dv_name = ""
-        all_higher_order = (self._layout_style == "bipartite")
-        if self.is_directed():
-            dv_name = self._report.dvName()
+        dv_name = self._report.dvName() if self.is_directed() else ""
+        all_higher_order = self._layout_style == "bipartite"
 
         if model in self.graphs:
             pass
