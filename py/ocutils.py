@@ -93,7 +93,6 @@ class OCUtils:
             report_attributes = re.sub(r",\slr", '', report_attributes)
             report_attributes = re.sub(r",\saic", '', report_attributes)
             report_attributes = re.sub(r",\sbic", '', report_attributes)
-            pass
         self._report.setAttributes(report_attributes)
         if re.search('bp_t', report_attributes):
             self._bp_statistics = 1
@@ -361,20 +360,12 @@ class OCUtils:
     def do_search(self, print_options):
         if self._manager.isDirected():
             if self.search_dir == "down":
-                if self._search_filter == "disjoint":
-                    pass
-                elif self._search_filter == "chain":
+                if self._search_filter == "chain":
                     print 'ERROR: Directed Down Chain Search not yet implemented.'
                     raise sys.exit()
-        else:
-            if self.search_dir == "up":
-                pass
-            else:
-                if self._search_filter == "disjoint":
-                    pass
-                elif self._search_filter == "chain":
-                    print 'ERROR: Neutral Down Chain Search not yet implemented.'
-                    raise sys.exit()
+        elif self.search_dir != "up" and self._search_filter == "chain":
+            print 'ERROR: Neutral Down Chain Search not yet implemented.'
+            raise sys.exit()
 
         if self._start_model == "":
             self._start_model = "default"
@@ -771,9 +762,7 @@ class OCUtils:
         dv_name = self._report.dvName() if self.is_directed() else ""
         all_higher_order = self._layout_style == "bipartite"
 
-        if model in self.graphs:
-            pass
-        else:
+        if model not in self.graphs:
             self.graphs[model] = ocGraph.generate(model, varlist, hide_iv,
                                                   hide_dv, dv_name,
                                                   full_var_names,

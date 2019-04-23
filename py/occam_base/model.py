@@ -26,13 +26,6 @@ class Model:
     def fit_table(self):
         pass
 
-    @fit_table.setter
-    def fit_table(self, model):
-        self.ref.makeFitTable(model)
-
     @fit_table.deleter
     def fit_table(self):
-        self.ref.deleteFitTable()
-
-    def set(self, **kwargs):
-        pass
+        self._ref.deleteFitTable()
