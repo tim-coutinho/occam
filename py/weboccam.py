@@ -25,9 +25,6 @@ import ocGraph
 cgitb.enable(display=1)
 VERSION = "3.4.0"
 stdout_save = None
-# TODO: eliminate the need for this kludgy definition.
-false = 0
-true = 1
 
 # TODO: check that the 'datadir' directory exists.
 # This requires a manual installation step.
@@ -41,11 +38,11 @@ def apply_if(predicate, func, val):
     return func(val) if predicate else val
 
 
-def get_data_file_name(form_fields, trim=false, key='datafilename'):
+def get_data_file_name(form_fields, trim=False, key='datafilename'):
     """
     Get the original name of the data file.
-    * form_fields:   the form data from the user
-    * trim:         trim the extension from the filename.
+    :param form_fields: The form data from the user
+    :param trim: Whether to trim the extension from the filename.
     """
     return '_'.join(apply_if(trim, lambda d: os.path.splitext(d)[0],
                              os.path.split(form_fields[key])[1]).split())
@@ -61,13 +58,13 @@ csvname = ""
 def print_headers(form_fields, text_format):
     if text_format:
         global csvname
-        origcsvname = get_data_file_name(form_fields, true) + ".csv"
+        origcsvname = get_data_file_name(form_fields, True) + ".csv"
         csvname = get_unique_filename("data/" + origcsvname)
         if use_gfx(form_fields):
             # REDIRECT OUTPUT FOR NOW (it will be printed in output_zipfile())
             print "Content-type: application/octet-stream"
             print "Content-disposition: attachment; filename=" + get_data_file_name(
-                form_fields, true) + ".zip"
+                form_fields, True) + ".zip"
             print ""
             sys.stdout.flush()
 
@@ -92,7 +89,8 @@ def print_top(template, text_format):
     else:
         template.set_template('header.html')
     args = {'version': VERSION, 'date': datetime.datetime.now().strftime("%c")}
-    template.out(args)
+    print(template.with_(args))
+    print(template.with_(args))
 
 
 def print_time(text_format):
@@ -153,7 +151,7 @@ def output_to_zip(oc):
     global csvname
 
     # Make an empty zip file
-    zipname = "data/" + get_data_file_name(form_fields, true) + ".zip"
+    zipname = "data/" + get_data_file_name(form_fields, True) + ".zip"
     z = zipfile.ZipFile(zipname, "w")
 
     sys.stdout.flush()
@@ -194,7 +192,7 @@ def output_to_zip(oc):
     sys.stdout = os.fdopen(stdout_save, 'w')
 
     # Write the CSV to the ZIP
-    z.write(csvname, get_data_file_name(form_fields, true) + ".csv")
+    z.write(csvname, get_data_file_name(form_fields, True) + ".csv")
     z.close()
 
     # print out the zipfile
@@ -210,7 +208,7 @@ def output_to_zip(oc):
 def print_bottom():
     template.set_template('footer.html')
     args = {}
-    template.out(args)
+    print(template.with_(args))
 
 
 #
@@ -223,33 +221,33 @@ def print_form(form_fields):
     if "format_text" in form_fields:
         form_fields['format_text'] = "checked"
     template.set_template('switchform.html')
-    template.out(form_fields)
+    print(template.with_(form_fields))
 
     if action in ["fit", "search", "SBsearch", "SBfit"]:
 
         template.set_template("formheader.html")
-        template.out(form_fields)
+        print(template.with_(form_fields))
 
         cached = form_fields.get("cached", "")
 
         if cached == "true":
             template.set_template("cached_data.template.html")
-            template.out(form_fields)
+            print(template.with_(form_fields))
         else:
             template.set_template("data.template.html")
-            template.out(form_fields)
+            print(template.with_(form_fields))
 
         template.set_template(action + ".template.html")
-        template.out(form_fields)
+        print(template.with_(form_fields))
         template.set_template("output.template.html")
-        template.out(form_fields)
+        print(template.with_(form_fields))
 
         template.set_template(action + ".footer.html")
-        template.out(form_fields)
+        print(template.with_(form_fields))
 
     elif action in ["compare", "log", "fitbatch"]:
         template.set_template(action + "form.html")
-        template.out(form_fields)
+        print(template.with_(form_fields))
 
     if action == "jobcontrol":
         JobControl().show_jobs(form_fields)
@@ -521,7 +519,7 @@ def action_fit(form_fields):
     oc.set_data_file(form_fields["datafilename"])
     handle_graph_options(oc, form_fields)
 
-    if "calc_expectedDV" in form_fields:
+    if "calcExpectedDV" in form_fields:
         oc.set_calc_expected_dv(1)
 
     oc.set_ddf_method(1)
@@ -1181,9 +1179,9 @@ def start_batch(form_fields):
         print "ERROR: No data file specified."
         sys.exit()
     ctlfilename = os.path.join(datadir,
-                               get_data_file_name(form_fields, true) + '.ctl')
+                               get_data_file_name(form_fields, True) + '.ctl')
     ctlfilename = get_unique_filename(ctlfilename)
-    csvname = get_data_file_name(form_fields, true) + '.csv'
+    csvname = get_data_file_name(form_fields, True) + '.csv'
     datafilename = get_data_file_name(form_fields)
     toaddress = form_fields["batch_output"].lower()
     email_subject = form_fields["email_subject"]
@@ -1221,11 +1219,11 @@ def get_web_controls():
 # ---- get_batch_controls ----
 #
 def get_batch_controls():
-    ctlfile = sys.argv[1]
-    f = open(ctlfile, "r")
+    ctl_file = sys.argv[1]
+    f = open(ctl_file, "r")
     form_fields = pickle.load(f)
     f.close()
-    os.remove(ctlfile)
+    os.remove(ctl_file)
     # set text mode
     form_fields["format"] = "text"
     return form_fields
@@ -1255,21 +1253,22 @@ def start_normal(form_fields):
         print "Subject line:," + form_fields["email_subject"]
 
     try:
-        if form_fields["action"] == "fit":
+        action = form_fields["action"]
+        if action == "fit":
             action_fit(form_fields)
-        elif form_fields["action"] == "SBsearch":
+        elif action == "SBsearch":
             action_sb_search(form_fields)
-        elif form_fields["action"] == "SBfit":
+        elif action == "SBfit":
             action_sb_fit(form_fields)
-        elif form_fields["action"] == "fitbatch":
+        elif action == "fitbatch":
             action_fit_batch(form_fields)
-        elif form_fields["action"] == "search" or form_fields["action"] == "advanced":
+        elif action == "search" or action == "advanced":
             action_search(form_fields)
-        elif form_fields["action"] == "log":
+        elif action == "log":
             action_show_log(form_fields)
-        elif form_fields["action"] == "compare":
+        elif action == "compare":
             action_batch_compare(form_fields)
-        elif form_fields["action"] == "jobcontrol":
+        elif action == "jobcontrol":
             pass
         else:
             action_error()
