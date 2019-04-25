@@ -272,10 +272,9 @@ def get_data_file_alloc(form_fields, key='datafilename'):
     datafile = get_unique_filename(
         os.path.join(datadir, get_data_file_name(form_fields)))
     try:
-        outf = open(datafile, "w", 0660)
-        data = form_fields["data"]
-        outf.write(data)
-        outf.close()
+        with open(datafile, "w", 0660) as f:
+            data = form_fields["data"]
+            f.write(data)
     except Exception:
         if get_data_file_name(form_fields) == "":
             print "ERROR: No data file specified."

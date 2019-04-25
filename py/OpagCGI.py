@@ -27,7 +27,7 @@ class Replacer:
         The constructor. It's only duty is to populate itself with the
         replacement dictionary passed.
         """
-        self.dict = dict_
+        self._dict = dict_
 
     def replace(self, matchobj):
         """
@@ -43,11 +43,11 @@ class Replacer:
         else:
             key = match
             qual = ''
-        if key in self.dict:
-            if qual == 'checked' or qual == self.dict[key]:
+        if key in self._dict:
+            if qual == 'checked' or qual == self._dict[key]:
                 return 'checked'
             else:
-                return self.dict[key]
+                return self._dict[key]
         else:
             return ''
 
@@ -65,10 +65,11 @@ class OpagCGI:
         OpagCGI(template) -> OpagCGI object
         The class constructor, taking the path to the template to use
         """
-        if template:
-            self.set_template(template)
+        self._dict = None
+        self._header = False
+        self._template = template
 
-    def __repr__(self):
+    def __str__(self):
         try:
             ret = self.parse()
         except Exception as e:
@@ -76,13 +77,18 @@ class OpagCGI:
         else:
             return ret
         finally:
-            del self._dict
-            del self._header
+            self._dict = None
+            self._header = False
 
-    def set_template(self, template):
-        self.template = template
-        if not os.path.exists(self.template):
-            raise OpagMissingPrecondition("%s does not exist" % self.template)
+    @property
+    def template(self):
+        return self._template
+
+    @template.setter
+    def template(self, template):
+        self._template = template
+        if not os.path.exists(self._template):
+            raise OpagMissingPrecondition("%s does not exist" % self._template)
 
     def parse(self):
         """
@@ -90,20 +96,20 @@ class OpagCGI:
         This method parses the open file object passed, replacing any keys
         found using the replacement dictionary passed.
         """
-        if not isinstance(self.dict_, dict):
+        if not isinstance(self._dict, dict):
             raise TypeError("Second argument must be a dictionary")
-        if not self.template:
+        if not self._template:
             raise OpagMissingPrecondition("template path is not set")
         # Open the file if its not already open. If it is, seek to the
         # beginning of the file.
-        with open(self.template) as f:
+        with open(self._template) as f:
             # Instantiate a new bound method to do the replacement.
-            replacer = Replacer(self.dict_).replace
+            replacer = Replacer(self._dict).replace
             # Read in the entire template into memory. I guess we'd better keep
             # the templates a reasonable size if we're going to keep doing this.
             buffer_ = f.read()
             replaced = ""
-            if self.header:
+            if self._header:
                 replaced = "Content-Type: text/html\n\n"
             replaced = replaced + re.sub("{(.+)}", replacer, buffer_)
         return replaced
