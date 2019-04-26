@@ -5,7 +5,7 @@
 
 SHELL = /bin/sh
 CC = gcc
-CFLAGS = -w -Wall -O3 -fPIC -std=c++11 -I ../include -frounding-math -fsignaling-nans -fsigned-zeros -fno-finite-math-only -msse2 -mfpmath=sse
+CFLAGS = -g -w -Wall -O3 -fPIC -std=c++11 -I ../include -frounding-math -fsignaling-nans -fsigned-zeros -fno-finite-math-only -msse2 -mfpmath=sse
 LFLAGS = -shared
 AR = ar
 COMPILE = $(CC) $(CFLAGS)
@@ -50,7 +50,7 @@ all: $(LIB) $(DYLIB) $(CL)
 clean:
 	-rm -f $(LIB) *.o core *.bak *.a *.so *~ occ
 
-.cpp.o: 
+.cpp.o:
 	$(COMPILE) -c $<
 
 
@@ -166,7 +166,7 @@ ReportPrintConditionalDV.o: ReportPrintConditionalDV.cpp \
  ../include/Types.h ../include/VariableList.h ../include/Variable.h \
  ../include/Constants.h ../include/ManagerBase.h ../include/Options.h \
  ../include/VarIntersect.h ../include/Math.h ../include/VBMManager.h \
- ../include/ManagerBase.h 
+ ../include/ManagerBase.h
 ReportPrintResiduals.o: ReportPrintResiduals.cpp ../include/Key.h \
  ../include/Types.h ../include/ManagerBase.h ../include/Model.h \
  ../include/ModelCache.h ../include/Relation.h ../include/Table.h \
@@ -198,7 +198,7 @@ Search.o: Search.cpp ../include/Search.h ../include/SearchBase.h \
  ../include/Types.h ../include/VariableList.h ../include/Variable.h \
  ../include/Constants.h ../include/Options.h ../include/VarIntersect.h \
  ../include/VBMManager.h ../include/SBMManager.h ../include/ModelCache.h \
- ../include/_Core.h ../include/Math.h 
+ ../include/_Core.h ../include/Math.h
 StateConstraint.o: StateConstraint.cpp ../include/StateConstraint.h \
  ../include/Types.h ../include/_Core.h
 Table.o: Table.cpp ../include/_Core.h

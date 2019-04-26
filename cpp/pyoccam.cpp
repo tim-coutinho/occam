@@ -66,7 +66,6 @@ DefinePyObject(Relation);
 DefinePyObject(Model);
 DefinePyObject(Report);
 
-DefinePyObject(Manager);
 
 /**************************/
 /****** VBMManager ******/
@@ -1596,33 +1595,40 @@ DefinePyFunction(Model, new) {
 //getters - Capstone Team A
 
 DefinePyFunction(Report, getRelation){
-    Report* report = ObjRef(self, Report);
+  /*  Report* report = ObjRef(self, Report);
     PRelation *list = ObjNew(Relation);
     list->obj = report->getRelation();
 
-    Py_INCREF(var_list);
+    Py_INCREF(list);
 
-    return (PyObject*) list;
+    return (PyObject*) list;*/
 }
 
 DefinePyFunction(Report, getModel){
-    Report* report = ObjRef(self, Report);
+  /*  Report* report = ObjRef(self, Report);
     PModel *list = ObjNew(Model);
     list->obj = report->getModel();
 
     Py_INCREF(list);
 
-    return (PyObject*) list;
+    return (PyObject*) list;*/
 }
 
 DefinePyFunction(Report, getManager){
+    PyArg_ParseTuple(args, "");
     Report* report = ObjRef(self, Report);
-    PManager *list = ObjNew(Manager);
-    list->obj = report -> getManager();
 
-    Py_INCREF(list);
+    #ifdef SB
+        PSBMManager *mgr = ObjNew(SBMManager);
+        mgr->obj = dynamic_cast<SBMManager*>(report -> getManager());
+    #else
+        PVBMManager *mgr = ObjNew(VBMManager);
+        mgr->obj = dynamic_cast<VBMManager*>(report -> getManager());
+    #endif
 
-    return (PyObject*) list;
+    Py_INCREF(mgr);
+
+    return (PyObject*) mgr;
 }
 
 //getters - Capstone Team A End
@@ -1766,7 +1772,7 @@ DefinePyFunction(Report, printConditional_DV) {
 }
 
 
-DefinePyFunction(Report, bestModelName) { 
+DefinePyFunction(Report, bestModelName) {
     Report* report = ObjRef(self, Report);
     const char* ret = report->bestModelName();
     return Py_BuildValue("s", ret);
@@ -1813,15 +1819,15 @@ DefinePyFunction(Report, variableList) {
     return ret;
 }
 
-DefinePyFunction(Report, bestModelData) { 
+DefinePyFunction(Report, bestModelData) {
     // Get the report and the manager
-   
+
 
     // RESUME
-     
+
     Report* report = ObjRef(self, Report);
     VBMManager* mgr = dynamic_cast<VBMManager*>(report->manager);
-    
+
     // Get the best model name
     const char* bestModelName = report->bestModelName();
 
@@ -1842,17 +1848,17 @@ DefinePyFunction(Report, bestModelData) {
     //auto printer = [](char* key, double value) {
     //    printf("%s: %g, \n", key, value);
     //};
-    //tableKVIteration(fit, varlist, var_count, printer); 
+    //tableKVIteration(fit, varlist, var_count, printer);
 
     // Get statistics for the best model
-    
+
     Model* data = mgr->getTopRefModel();
 
     mgr->computeH(mod);
     mgr->computeL2Statistics(mod);
     mgr->computeH(data);
     mgr->computeL2Statistics(data);
-    
+
     double h_model = mod->getAttribute(ATTRIBUTE_H);
     double df_model = mod->getAttribute(ATTRIBUTE_DF);
     double aic_model = mod->getAttribute(ATTRIBUTE_AIC);
@@ -1864,8 +1870,8 @@ DefinePyFunction(Report, bestModelData) {
 
     // Make Python dictionary holding fit table for the best model
     // (as a sparse dictionary of (key, probability))
-    
-    PyObject *sparseTable = PyDict_New(); 
+
+    PyObject *sparseTable = PyDict_New();
     auto dictPopulator = [&sparseTable](char* key, double value) {
         PyObject *keyP = Py_BuildValue("s", key);
         PyObject *valueP = Py_BuildValue("d", value);
@@ -1875,7 +1881,7 @@ DefinePyFunction(Report, bestModelData) {
 
     // Make a Python object to hold everything
     PyObject *ret = Py_BuildValue(
-        "{s:s,s:O,s:d,s:d,s:d,s:d,s:d,s:d,s:d,s:d}", 
+        "{s:s,s:O,s:d,s:d,s:d,s:d,s:d,s:d,s:d,s:d}",
             "name", bestModelName,
             "sparse_table", sparseTable,
             "H(model)",  h_model,
@@ -1885,15 +1891,15 @@ DefinePyFunction(Report, bestModelData) {
             "H(data)", h_data,
             "DF(data)", df_data,
             "dAIC(data)", aic_data,
-            "dBIC(data)", bic_data 
+            "dBIC(data)", bic_data
             );
 
     return ret;
 }
 
 
-static struct PyMethodDef Report_methods[] = { 
-        PyMethodDef(Report, getRelation), PyMethodDef(Report, getModel), PyMethodDef(Report, getModel),
+static struct PyMethodDef Report_methods[] = {
+        PyMethodDef(Report, getRelation), PyMethodDef(Report, getModel), PyMethodDef(Report, getManager),
         PyMethodDef(Report, bestModelName), PyMethodDef(Report, bestModelData), PyMethodDef(Report, get), PyMethodDef(Report, addModel),
         PyMethodDef(Report, setDefaultFitModel), PyMethodDef(Report, setAttributes), PyMethodDef(Report, sort),
         PyMethodDef(Report, printReport), PyMethodDef(Report, writeReport), PyMethodDef(Report, setSeparator),
@@ -1971,11 +1977,10 @@ extern "C" {
 
 void initoccam() {
     PyObject *m, *d;
-    m = Py_InitModule("occam", occam_methods); 
+    m = Py_InitModule("occam", occam_methods);
     d = PyModule_GetDict(m);
     ErrorObject = Py_BuildValue("s", "occam.error");
     PyDict_SetItemString(d, "error", ErrorObject);
     if (PyErr_Occurred())
         Py_FatalError("cannot initialize module occam");
 }
-
