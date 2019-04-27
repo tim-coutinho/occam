@@ -12,9 +12,6 @@
 import os
 import re
 
-# The replacement dictionary for parsing the template.
-replacement_dict = {}
-
 
 class Replacer:
     """
@@ -27,7 +24,7 @@ class Replacer:
         The constructor. It's only duty is to populate itself with the
         replacement dictionary passed.
         """
-        self._dict = dict_
+        self._replacements = dict_
 
     def replace(self, matchobj):
         """
@@ -43,11 +40,11 @@ class Replacer:
         else:
             key = match
             qual = ''
-        if key in self._dict:
-            if qual == 'checked' or qual == self._dict[key]:
+        if key in self._replacements:
+            if qual == 'checked' or qual == self._replacements[key]:
                 return 'checked'
             else:
-                return self._dict[key]
+                return self._replacements[key]
         else:
             return ''
 
@@ -65,7 +62,7 @@ class OpagCGI:
         OpagCGI(template) -> OpagCGI object
         The class constructor, taking the path to the template to use
         """
-        self._dict = None
+        self._replacements = None
         self._header = False
         self._template = template
 
@@ -77,7 +74,7 @@ class OpagCGI:
         else:
             return ret
         finally:
-            self._dict = None
+            self._replacements = None
             self._header = False
 
     @property
@@ -96,7 +93,7 @@ class OpagCGI:
         This method parses the open file object passed, replacing any keys
         found using the replacement dictionary passed.
         """
-        if not isinstance(self._dict, dict):
+        if not isinstance(self._replacements, dict):
             raise TypeError("Second argument must be a dictionary")
         if not self._template:
             raise OpagMissingPrecondition("template path is not set")
@@ -104,7 +101,7 @@ class OpagCGI:
         # beginning of the file.
         with open(self._template) as f:
             # Instantiate a new bound method to do the replacement.
-            replacer = Replacer(self._dict).replace
+            replacer = Replacer(self._replacements).replace
             # Read in the entire template into memory. I guess we'd better keep
             # the templates a reasonable size if we're going to keep doing this.
             buffer_ = f.read()
@@ -118,7 +115,7 @@ class OpagCGI:
         print self.parse(dict_, header)
 
     def with_(self, dict_=None, header=False):
-        self._dict = dict_
+        self._replacements = dict_
         self._header = header
         return self
 
