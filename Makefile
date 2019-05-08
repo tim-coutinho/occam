@@ -8,7 +8,8 @@ SHELL = /bin/sh
 INSTALL_ROOT = install
 WEB_ROOT = $(INSTALL_ROOT)/web
 CL_ROOT = $(INSTALL_ROOT)/cl
-PY_INCLUDE = /usr/include/python2.7
+PACKAGE_ROOT = $(INSTALL_ROOT)/occampy
+CAPSTONE_ROOT = py/occampy
 
 HEADERS = \
 	include/attrDescs.h			\
@@ -50,6 +51,7 @@ CPP_FILES = \
 	cpp/occ.cpp \
 	cpp/Options.cpp \
 	cpp/pyoccam.cpp \
+	cpp/pyoccam3.cpp \
 	cpp/Relation.cpp \
 	cpp/RelCache.cpp \
 	cpp/Report.cpp \
@@ -64,20 +66,38 @@ CPP_FILES = \
 	cpp/VariableList.cpp \
 	cpp/VBMManager.cpp \
 
-CORE_FILES = \
+CORE_FILES_PY2 = \
 	cpp/occam.so \
-	py/occammail.py \
-	py/common.py \
-	py/ocutils.py \
-	py/distanceFunctions.py \
-	py/ocGraph.py
+	py/py2/occammail.py \
+	py/py2/common.py \
+	py/py2/ocutils.py \
+	py/py2/distanceFunctions.py \
+	py/py2/ocGraph.py
 
-CL_FILES = \
+CORE_FILES_PY3 = \
+	cpp/occam3.so \
+	py/py3/occammail.py \
+	py/py3/common.py \
+	py/py3/ocutils.py \
+	py/py3/distanceFunctions.py \
+	py/py3/ocGraph.py
+
+SETUP_FILE = \
+		py/py3/setup.py
+
+CL_FILES_PY2 = \
 	cpp/occ \
-	py/basic.py \
-	py/fit.py \
-	py/sbfit.py \
-	py/sbsearch.py
+	py/py2/basic.py \
+	py/py2/fit.py \
+	py/py2/sbfit.py \
+	py/py2/sbsearch.py
+
+CL_FILES_PY3 = \
+	cpp/occ \
+	py/py3/basic.py \
+	py/py3/fit.py \
+	py/py3/sbfit.py \
+	py/py3/sbsearch.py
 
 WEB_FILES = \
 	html/.htaccess \
@@ -86,9 +106,9 @@ WEB_FILES = \
 	html/footer.html \
 	html/header.html \
 	html/index.html \
-	py/OpagCGI.py \
-	py/jobcontrol.py \
-	py/weboccam.py \
+	py/py2/OpagCGI.py \
+	py/py2/jobcontrol.py \
+	py/py2/weboccam.py \
 	html/switchform.html \
 	html/header.txt \
 	html/formheader.html \
@@ -111,24 +131,40 @@ WEB_FILES = \
 	html/compare.footer.html \
 	html/occambatch
 
-install: lib $(WEB_FILES) $(CORE_FILES) $(CL_FILES)
+CAPSTONE_FILES_PY2 = \
+	$(CAPSTONE_ROOT)2/*.py \
+	$(CAPSTONE_ROOT)2/wrappers
+
+CAPSTONE_FILES_PY3 = \
+	$(CAPSTONE_ROOT)3/*.py \
+	$(CAPSTONE_ROOT)3/wrappers
+
+install: lib $(WEB_FILES) $(CORE_FILES_PY2) $(CL_FILES_PY2) $(CAPSTONE_FILES_PY2) $(CAPSTONE_FILES_PY3) $(SETUP_FILE)
 	-rm -rf $(INSTALL_ROOT)
 	mkdir -p $(INSTALL_ROOT)
-	mkdir -p $(WEB_ROOT)
-	mkdir -p $(CL_ROOT)
-	cp $(WEB_FILES) $(WEB_ROOT)
-	cp $(CORE_FILES) $(WEB_ROOT)
-	cp $(CORE_FILES) $(CL_ROOT)
-	cp $(CL_FILES) $(CL_ROOT)
-	mkdir -p $(WEB_ROOT)/data
+	make web
+	make cli
+	make occampy
+	cp $(SETUP_FILE) $(INSTALL_ROOT)
+	touch cpp/__init__.py
 
 web:
-	cp $(WEB_FILES) $(WEB_ROOT)
-	cp $(CORE_FILES) $(WEB_ROOT)
+	mkdir -p $(WEB_ROOT)
+	cp $(WEB_FILES) $(CORE_FILES_PY2) $(WEB_ROOT)
+	touch $(WEB_ROOT)/__init__.py
 
 cli:
-	cp $(CORE_FILES) $(CL_ROOT)
-	cp $(CL_FILES) $(CL_ROOT)
+	mkdir -p $(CL_ROOT)
+	cp $(CL_FILES_PY2) $(CORE_FILES_PY2) $(CL_ROOT)
+	touch $(CL_ROOT)/__init__.py
+
+occampy:
+	mkdir -p $(PACKAGE_ROOT)2 $(PACKAGE_ROOT)3
+	cp -r $(CAPSTONE_FILES_PY2) $(PACKAGE_ROOT)2
+	cp cpp/occam.so $(PACKAGE_ROOT)2/wrappers/occam.so
+	cp -r $(CAPSTONE_FILES_PY3) $(PACKAGE_ROOT)3
+	cp cpp/occam3.so $(PACKAGE_ROOT)3/wrappers/occam.so
+
 
 lib: $(HEADERS) $(CPP_FILES)
 	cd cpp && make
