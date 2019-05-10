@@ -1971,33 +1971,12 @@ DefinePyFunction(Report, bestModelData) {
 }
 
 
-<<<<<<< HEAD
 static struct PyMethodDef Report_methods[] = { 
-        PyMethodDef(Report, getRelation), PyMethodDef(Report, getModel), PyMethodDef(Report, getModel),
+        PyMethodDef(Report, getRelation), PyMethodDef(Report, getModel), PyMethodDef(Report, getManager),
         PyMethodDef(Report, bestModelName), PyMethodDef(Report, bestModelData), PyMethodDef(Report, get), PyMethodDef(Report, addModel),
         PyMethodDef(Report, setDefaultFitModel), PyMethodDef(Report, setAttributes), PyMethodDef(Report, sort),
         PyMethodDef(Report, printReport), PyMethodDef(Report, writeReport), PyMethodDef(Report, setSeparator),
         PyMethodDef(Report, printResiduals), PyMethodDef(Report, printConditional_DV), PyMethodDef(Report, variableList), PyMethodDef(Report, dvName), PyMethodDef(Report, bestModelBIC), { NULL, NULL, 0 } };
-=======
-static struct PyMethodDef Report_methods[] = {
-    PyMethodDef(Report, addModel),
-    PyMethodDef(Report, bestModelBIC),
-    PyMethodDef(Report, bestModelData),
-    PyMethodDef(Report, bestModelName),
-    PyMethodDef(Report, dvName),
-    PyMethodDef(Report, get),
-    PyMethodDef(Report, printConditional_DV),
-    PyMethodDef(Report, printReport),
-    PyMethodDef(Report, printResiduals),
-    PyMethodDef(Report, setAttributes),
-    PyMethodDef(Report, setDefaultFitModel),
-    PyMethodDef(Report, setSeparator),
-    PyMethodDef(Report, sort),
-    PyMethodDef(Report, variableList),
-    PyMethodDef(Report, writeReport),
-    { NULL, NULL, 0 }
-};
->>>>>>> 2d8d1069796d72d6dae83d24c56d49930f41710f
 /****** Basic Type Operations ******/
 
 /* commented out because it is currently unused
