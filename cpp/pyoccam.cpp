@@ -1593,6 +1593,9 @@ DefinePyFunction(Model, new) {
 /****** Report ******/
 /************************/
 
+
+
+
 //getters - Capstone Team A
 
 DefinePyFunction(Report, getRelation){
@@ -1606,13 +1609,18 @@ DefinePyFunction(Report, getRelation){
 }
 
 DefinePyFunction(Report, getModel){
-    Report* report = ObjRef(self, Report);
-    PModel *list = ObjNew(Model);
-    list->obj = report->getModel();
-
+    char *attrName;
+    PyArg_ParseTuple(args, "o", &attrName);
+    const char *value;
+    void *nextp = NULL;
+    PyObject *list = PyList_New(0);
+    //change to object
+    while (ObjRef(self, Report)->getOptionString(attrName, &nextp, &value) && nextp != NULL) {
+        PyObject *valstr = Py_BuildValue("o", value);
+        PyList_Append(list, valstr);
+    }
     Py_INCREF(list);
-
-    return (PyObject*) list;
+    return list;
 }
 
 DefinePyFunction(Report, getManager){
