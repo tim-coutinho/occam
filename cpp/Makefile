@@ -10,11 +10,14 @@ LFLAGS = -shared
 AR = ar
 COMPILE = $(CC) $(CFLAGS)
 PY_INCLUDE = /usr/include/python2.7
+PY_INCLUDE3 = /usr/include/python3.7
 CL = occ
 RANLIB = ranlib
 LDFLAGS = -lm -lstdc++ -lgmp
 PY = pyoccam.cpp
+PY3 = pyoccam3.cpp
 DYLIB = occam.so
+DYLIB3 = occam3.so
 LIB = liboccam3.a
 
 LIBOBJECTS = \
@@ -43,14 +46,14 @@ LIBOBJECTS = \
 	VariableList.o \
 	_Core.o
 
-all: $(LIB) $(DYLIB) $(CL)
+all: $(LIB) $(DYLIB) $(DYLIB3) $(CL)
 
 .SUFFIXES:
 .SUFFIXES: .cpp .o
 clean:
 	-rm -f $(LIB) *.o core *.bak *.a *.so *~ occ
 
-.cpp.o: 
+.cpp.o:
 	$(COMPILE) -c $<
 
 
@@ -63,6 +66,8 @@ $(LIB): $(LIBOBJECTS)
 # occam.so depends on liboccam3.a and pyoccam.cpp
 $(DYLIB): $(LIB) $(PY)
 	$(COMPILE) $(LFLAGS) -I $(PY_INCLUDE) -o $(DYLIB) $(PY) $(LIB) $(LDFLAGS)
+$(DYLIB3): $(LIB) $(PY3)
+	$(COMPILE) $(LFLAGS) -I $(PY_INCLUDE3) -o $(DYLIB3) $(PY3) $(LIB) $(LDFLAGS)
 $(CL): occ.cpp $(LIB)
 	$(COMPILE) -o $(CL) occ.cpp $(LIBOBJECTS) $(LDFLAGS)
 
@@ -137,6 +142,14 @@ pyoccam.o: pyoccam.cpp ../include/AttributeList.h \
  ../include/Options.h ../include/VarIntersect.h  \
  ../include/Report.h ../include/SBMManager.h ../include/SearchBase.h \
  ../include/SBMManager.h ../include/VBMManager.h
+pyoccam3.o: pyoccam3.cpp ../include/AttributeList.h \
+ ../include/Math.h ../include/VBMManager.h ../include/ManagerBase.h \
+ ../include/Model.h ../include/ModelCache.h ../include/Relation.h \
+ ../include/Table.h ../include/Globals.h ../include/Types.h \
+ ../include/VariableList.h ../include/Variable.h ../include/Constants.h \
+ ../include/Options.h ../include/VarIntersect.h  \
+ ../include/Report.h ../include/SBMManager.h ../include/SearchBase.h \
+ ../include/SBMManager.h ../include/VBMManager.h
 Relation.o: Relation.cpp ../include/AttributeList.h ../include/Key.h \
  ../include/Types.h ../include/Relation.h ../include/Table.h \
  ../include/Globals.h ../include/VariableList.h ../include/Variable.h \
@@ -166,7 +179,7 @@ ReportPrintConditionalDV.o: ReportPrintConditionalDV.cpp \
  ../include/Types.h ../include/VariableList.h ../include/Variable.h \
  ../include/Constants.h ../include/ManagerBase.h ../include/Options.h \
  ../include/VarIntersect.h ../include/Math.h ../include/VBMManager.h \
- ../include/ManagerBase.h 
+ ../include/ManagerBase.h
 ReportPrintResiduals.o: ReportPrintResiduals.cpp ../include/Key.h \
  ../include/Types.h ../include/ManagerBase.h ../include/Model.h \
  ../include/ModelCache.h ../include/Relation.h ../include/Table.h \
@@ -198,7 +211,7 @@ Search.o: Search.cpp ../include/Search.h ../include/SearchBase.h \
  ../include/Types.h ../include/VariableList.h ../include/Variable.h \
  ../include/Constants.h ../include/Options.h ../include/VarIntersect.h \
  ../include/VBMManager.h ../include/SBMManager.h ../include/ModelCache.h \
- ../include/_Core.h ../include/Math.h 
+ ../include/_Core.h ../include/Math.h
 StateConstraint.o: StateConstraint.cpp ../include/StateConstraint.h \
  ../include/Types.h ../include/_Core.h
 Table.o: Table.cpp ../include/_Core.h

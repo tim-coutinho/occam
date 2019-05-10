@@ -17,15 +17,6 @@
 #include <unistd.h>
 #include <Python.h>
 
-#if defined(_WIN32) || defined(__WIN32__)
-#	if defined(STATIC_LINKED)
-#       define SWIGEXPORT(a) a
-#   else
-#       define SWIGEXPORT(a) __declspec(dllexport) a
-#   endif
-#else
-#  define SWIGEXPORT(a) a
-#endif
 
 /***** MACROS *****/
 //-- Exit function on error
@@ -84,13 +75,31 @@ DefinePyObject(Variable);
 DefineIterablePyObject(VariableList)
 
 
-DefinePyObject(Manager);
-
 /**************************/
 /****** VBMManager ******/
 /**************************/
 
 /****** Methods ******/
+
+static PyObject *
+VBMManager_new(PyObject *self, PyObject *args)
+{
+    if (!PyArg_ParseTuple(args, ""))
+        return NULL;
+
+    PVBMManager *newobj = ObjNew(VBMManager);
+    newobj->obj = new VBMManager();
+    Py_INCREF(newobj);
+    return (PyObject*) newobj;
+}
+
+static void
+VBMManager_dealloc(PVBMManager *self)
+{
+    if (self->obj)
+        delete self->obj;
+    delete self;
+}
 
 // Constructor
 DefinePyFunction(VBMManager, initFromCommandLine) {
@@ -101,9 +110,9 @@ DefinePyFunction(VBMManager, initFromCommandLine) {
     int i;
     for (i = 0; i < argc; i++) {
         PyObject *PString = PyList_GetItem(Pargv, i);
-        int size = PyString_Size(PString);
+        int size = PyUnicode_GetLength(PString);
         argv[i] = new char[size + 1];
-        strcpy(argv[i], PyString_AsString(PString));
+        strcpy(argv[i], PyUnicode_AsUTF8(PString));
     }
     bool ret;
     ret = ObjRef(self, VBMManager)->initFromCommandLine(argc, argv);
@@ -143,8 +152,15 @@ DefinePyFunction(VBMManager, makeAllChildRelations) {
 DefinePyFunction(VBMManager, getDvName) {
     VBMManager* mgr = ObjRef(self, VBMManager);
     VariableList* varlist = mgr->getVariableList();
+
+    if(!varlist)
+    {
+        Py_INCREF(Py_None);
+        return Py_None;
+    }
+
     const char* abbrev = varlist->getVariable(varlist->getDV())->abbrev;
-    PyObject* name = PyString_FromString(abbrev);
+    PyObject* name = PyUnicode_FromString(abbrev);
     return name;
 }
 
@@ -728,60 +744,67 @@ static struct PyMethodDef VBMManager_methods[] = {
         PyMethodDef(VBMManager, setSearchType),
         PyMethodDef(VBMManager, setUseInverseNotation),
         PyMethodDef(VBMManager, setValuesAreFunctions),
-        { NULL, NULL, 0 }
+        { nullptr }
 };
 
-/****** Basic Type Operations ******/
-
-static void VBMManager_dealloc(PVBMManager *self) {
-    if (self->obj)
-        delete self->obj;
-    delete self;
-}
-
-PyObject * VBMManager_getattr(PyObject *self, char *name) {
-    PyObject *method = Py_FindMethod(VBMManager_methods, self, name);
-    return method;
-}
 
 /****** Type Definition ******/
-PyTypeObject TVBMManager = { PyObject_HEAD_INIT(&PyType_Type) 0, "VBMManager_cpp",
-sizeof(PVBMManager), 0,
-//-- standard methods
-        (destructor) VBMManager_dealloc,
-        (printfunc) 0,
-        (getattrfunc) VBMManager_getattr,
-        (setattrfunc) 0,
-        (cmpfunc) 0,
-        (reprfunc) 0,
-
-        //-- type categories
-        0,
-        0,
-        0,
-
-        //-- more methods
-        (hashfunc) 0,
-        (ternaryfunc) 0,
-        (reprfunc) 0,
-        (getattrofunc) 0,
-        (setattrofunc) 0,
-    };
-
-DefinePyFunction(VBMManager, new) {
-    if (!PyArg_ParseTuple(args, ""))
-        return NULL;
-    PVBMManager *newobj = ObjNew(VBMManager);
-    newobj->obj = new VBMManager();
-    Py_INCREF(newobj);
-    return (PyObject*) newobj;
-}
+PyTypeObject TVBMManager = {
+    PyVarObject_HEAD_INIT(&PyType_Type, 0)
+    .tp_name            = "VBMManager_cpp",
+    .tp_basicsize       = sizeof(PVBMManager),
+    .tp_itemsize        = NULL,
+    .tp_dealloc         = (destructor) VBMManager_dealloc,
+    .tp_print           = nullptr,
+    .tp_getattr         = nullptr,
+    .tp_setattr         = nullptr,
+    .tp_as_async        = nullptr,
+    .tp_repr            = nullptr,
+    .tp_as_number       = nullptr,
+    .tp_as_sequence     = nullptr,
+    .tp_as_mapping      = nullptr,
+    .tp_hash            = nullptr,
+    .tp_call            = nullptr,
+    .tp_str             = nullptr,
+    .tp_getattro        = nullptr,
+    .tp_setattro        = nullptr,
+    .tp_as_buffer       = nullptr,
+    .tp_flags           = Py_TPFLAGS_DEFAULT,
+    .tp_doc             = nullptr,
+    .tp_traverse        = nullptr,
+    .tp_clear           = nullptr,
+    .tp_richcompare     = nullptr,
+    .tp_weaklistoffset  = NULL,
+    .tp_iter            = nullptr,
+    .tp_iternext        = nullptr,
+    .tp_methods         = VBMManager_methods,
+};
 
 /**************************/
 /****** SBMManager ******/
 /**************************/
 
 /****** Methods ******/
+
+static PyObject *
+SBMManager_new(PyObject *self, PyObject *args)
+{
+    if (!PyArg_ParseTuple(args, ""))
+        return NULL;
+
+    PSBMManager *newobj = ObjNew(SBMManager);
+    newobj->obj = new SBMManager();
+    Py_INCREF(newobj);
+    return (PyObject*) newobj;
+};
+
+static void
+SBMManager_dealloc(PVBMManager *self)
+{
+    if (self->obj)
+        delete self->obj;
+    delete self;
+}
 
 // Constructor
 DefinePyFunction(SBMManager, initFromCommandLine) {
@@ -792,9 +815,9 @@ DefinePyFunction(SBMManager, initFromCommandLine) {
     int i;
     for (i = 0; i < argc; i++) {
         PyObject *PString = PyList_GetItem(Pargv, i);
-        int size = PyString_Size(PString);
+        int size = PyUnicode_GetLength(PString);
         argv[i] = new char[size + 1];
-        strcpy(argv[i], PyString_AsString(PString));
+        strcpy(argv[i], PyUnicode_AsUTF8(PString));
     }
     bool ret;
     ret = ObjRef(self, SBMManager)->initFromCommandLine(argc, argv);
@@ -1283,57 +1306,56 @@ static struct PyMethodDef SBMManager_methods[] = {
         PyMethodDef(SBMManager, setRefModel),
         PyMethodDef(SBMManager, setSearchDirection),
         PyMethodDef(SBMManager, setSearchType),
-        { NULL, NULL, 0 }
+        { nullptr }
 };
 
-/****** Basic Type Operations ******/
-static void SBMManager_dealloc(PSBMManager *self) {
-    if (self->obj)
-        delete self->obj;
-    delete self;
-}
-
-PyObject * SBMManager_getattr(PyObject *self, char *name) {
-    PyObject *method = Py_FindMethod(SBMManager_methods, self, name);
-    return method;
-}
 
 /****** Type Definition ******/
-PyTypeObject TSBMManager = { PyObject_HEAD_INIT(&PyType_Type) 0, "SBMManager",
-sizeof(PSBMManager), 0,
-//-- standard methods
-        (destructor) SBMManager_dealloc,
-        (printfunc) 0,
-        (getattrfunc) SBMManager_getattr,
-        (setattrfunc) 0,
-        (cmpfunc) 0,
-        (reprfunc) 0,
-
-        //-- type categories
-        0,
-        0,
-        0,
-
-        //-- more methods
-        (hashfunc) 0,
-        (ternaryfunc) 0,
-        (reprfunc) 0,
-        (getattrofunc) 0,
-        (setattrofunc) 0,
-    };
-
-DefinePyFunction(SBMManager, new) {
-    if (!PyArg_ParseTuple(args, ""))
-        return NULL;
-    PSBMManager *newobj = ObjNew(SBMManager);
-    newobj->obj = new SBMManager();
-    Py_INCREF(newobj);
-    return (PyObject*) newobj;
-}
+PyTypeObject TSBMManager = {
+    PyVarObject_HEAD_INIT(&PyType_Type, 0)
+    .tp_name            = "SBMManager_cpp",
+    .tp_basicsize       = sizeof(PSBMManager),
+    .tp_itemsize        = NULL,
+    .tp_dealloc         = (destructor) SBMManager_dealloc,
+    .tp_print           = nullptr,
+    .tp_getattr         = nullptr,
+    .tp_setattr         = nullptr,
+    .tp_as_async        = nullptr,
+    .tp_repr            = nullptr,
+    .tp_as_number       = nullptr,
+    .tp_as_sequence     = nullptr,
+    .tp_as_mapping      = nullptr,
+    .tp_hash            = nullptr,
+    .tp_call            = nullptr,
+    .tp_str             = nullptr,
+    .tp_getattro        = nullptr,
+    .tp_setattro        = nullptr,
+    .tp_as_buffer       = nullptr,
+    .tp_flags           = Py_TPFLAGS_DEFAULT,
+    .tp_doc             = nullptr,
+    .tp_traverse        = nullptr,
+    .tp_clear           = nullptr,
+    .tp_richcompare     = nullptr,
+    .tp_weaklistoffset  = NULL,
+    .tp_iter            = nullptr,
+    .tp_iternext        = nullptr,
+    .tp_methods         = SBMManager_methods,
+};
 
 /************************/
 /****** Relation ******/
 /************************/
+static PyObject *
+Relation_new(PyObject *self, PyObject *args)
+{
+    if (!PyArg_ParseTuple(args, ""))
+        return NULL;
+
+    PRelation *newobj = ObjNew(Relation);
+    newobj->obj = new Relation();
+    Py_INCREF(newobj);
+    return (PyObject*) newobj;
+}
 
 // Object* get(char *name)
 DefinePyFunction(Relation, get) {
@@ -1343,12 +1365,12 @@ DefinePyFunction(Relation, get) {
     //-- Other attributes
     if (strcmp(name, "name") == 0) {
         const char *printName = relation->getPrintName();
-        return PyString_FromString(printName);
+        return PyUnicode_FromString(printName);
     }
 
     if (strcmp(name, "varcount") == 0) {
         long varcount = relation->getVariableCount();
-        return PyInt_FromLong(varcount);
+        return PyLong_FromLong(varcount);
     }
 
     int attindex = relation->getAttributeList()->getAttributeIndex(name);
@@ -1362,7 +1384,38 @@ DefinePyFunction(Relation, get) {
 
 static struct PyMethodDef Relation_methods[] = {
         PyMethodDef(Relation, get),
-        { NULL, NULL, 0 }
+        { nullptr }
+};
+
+PyTypeObject TRelation = {
+    PyVarObject_HEAD_INIT(&PyType_Type, 0)
+    .tp_name            = "Relation_cpp",
+    .tp_basicsize       = sizeof(PRelation),
+    .tp_itemsize        = NULL,
+    .tp_dealloc         = nullptr,
+    .tp_print           = nullptr,
+    .tp_getattr         = nullptr,
+    .tp_setattr         = nullptr,
+    .tp_as_async        = nullptr,
+    .tp_repr            = nullptr,
+    .tp_as_number       = nullptr,
+    .tp_as_sequence     = nullptr,
+    .tp_as_mapping      = nullptr,
+    .tp_hash            = nullptr,
+    .tp_call            = nullptr,
+    .tp_str             = nullptr,
+    .tp_getattro        = nullptr,
+    .tp_setattro        = nullptr,
+    .tp_as_buffer       = nullptr,
+    .tp_flags           = Py_TPFLAGS_DEFAULT,
+    .tp_doc             = nullptr,
+    .tp_traverse        = nullptr,
+    .tp_clear           = nullptr,
+    .tp_richcompare     = nullptr,
+    .tp_weaklistoffset  = NULL,
+    .tp_iter            = nullptr,
+    .tp_iternext        = nullptr,
+    .tp_methods         = Relation_methods,
 };
 
 /****** Basic Type Operations ******/
@@ -1387,71 +1440,35 @@ static struct PyMethodDef Relation_methods[] = {
  }
  */
 
-PyObject *
-Relation_getattr(PyObject *self, char *name) {
-    PyObject *method = Py_FindMethod(Relation_methods, self, name);
-    if (method)
-        return method;
+/************************/
+/****** Model ******/
+/************************/
 
-    Relation *rel = ObjRef(self, Relation);
-
-    //-- Other attributes
-    if (strcmp(name, "name") == 0) {
-        const char *printName = rel->getPrintName();
-        return Py_BuildValue("s", printName);
-    }
-
-    if (strcmp(name, "varcount") == 0) {
-        long varcount = rel->getVariableCount();
-        return Py_BuildValue("l", varcount);
-    }
-
-    int attindex = rel->getAttributeList()->getAttributeIndex(name);
-    double value;
-    if (attindex < 0)
-        value = -1;
-    else
-        value = rel->getAttributeList()->getAttributeByIndex(attindex);
-    return Py_BuildValue("d", value);
-}
-
-/****** Type Definition ******/
-PyTypeObject TRelation = { PyObject_HEAD_INIT(&PyType_Type) 0, "Relation",
-sizeof(PRelation),
-0,
-//-- standard methods
-        (destructor) 0,
-        (printfunc) 0,
-        (getattrfunc) Relation_getattr,
-        (setattrfunc) 0,
-        (cmpfunc) 0,
-        (reprfunc) 0,
-
-        //-- type categories
-        0,
-        0,
-        0,
-
-        //-- more methods
-        (hashfunc) 0,
-        (ternaryfunc) 0,
-        (reprfunc) 0,
-        (getattrofunc) 0,
-        (setattrofunc) 0,
-    };
-
-DefinePyFunction(Relation, new) {
+static PyObject *
+Model_new(PyObject *self, PyObject *args)
+{
     if (!PyArg_ParseTuple(args, ""))
         return NULL;
-    PRelation *newobj = ObjNew(Relation);
-    newobj->obj = new Relation();
+
+    PModel *newobj = ObjNew(Model);
+    newobj->obj = new Model();
     Py_INCREF(newobj);
     return (PyObject*) newobj;
 }
 
-/************************/
-/****** Model ******/
-/************************/
+int Model_setattr(PyObject *self, char *name, PyObject *value) {
+    double dvalue;
+    if (PyFloat_Check(value))
+        dvalue = PyFloat_AsDouble(value);
+    else if (PyLong_Check(value))
+        dvalue = PyLong_AsDouble(value);
+    else if (PyLong_Check(value))
+        dvalue = (double) PyLong_AsLong(value);
+    else
+        dvalue = -1;
+    ObjRef(self, Model)->setAttribute(name, dvalue);
+    return 0;
+}
 
 // Relation* getRelation(int index)
 DefinePyFunction(Model, getRelation) {
@@ -1471,12 +1488,12 @@ DefinePyFunction(Model, get) {
     //-- Other attributes
     if (strcmp(name, "name") == 0) {
         const char *printName = model->getPrintName();
-        return PyString_FromString(printName);
+        return PyUnicode_FromString(printName);
     }
 
     if (strcmp(name, "relcount") == 0) {
         long relcount = model->getRelationCount();
-        return PyInt_FromLong(relcount);
+        return PyLong_FromLong(relcount);
     }
 
     int attindex = model->getAttributeList()->getAttributeIndex(name);
@@ -1553,162 +1570,92 @@ DefinePyFunction(Model, dump) {
     return Py_None;
 }
 
+DefinePyFunction(Model, getPrintName)
+{
+    Model *model = ObjRef(self, Model);
+
+    if(!model)
+    {
+        Py_INCREF(Py_None);
+        return Py_None;
+    }
+
+    return PyUnicode_FromString(model->getPrintName());
+}
+
+DefinePyFunction(Model, getStructMatrix) {
+  int statespace;
+  int Total_const;
+  Model *model = ObjRef(self, Model);
+  PyObject *output_list = PyList_New(0);
+  int **structMatrix = model->getStructMatrix(&statespace, &Total_const);
+  if (structMatrix != NULL) {
+      for (int i = 0; i < Total_const; i++) {
+          PyObject *temp = PyList_New(0);
+          for (int j = 0; j < statespace; j++) {
+              PyObject *val = Py_BuildValue("i", structMatrix[i][j]);
+              PyList_Append(temp, val);
+          }
+          PyList_Append(output_list, temp);
+      }
+  }
+  return output_list;
+}
+
 static struct PyMethodDef Model_methods[] = {
-        PyMethodDef(Model, deleteFitTable),
-        PyMethodDef(Model, deleteRelationLinks),
-        PyMethodDef(Model, dump),
-        PyMethodDef(Model, get),
-        PyMethodDef(Model, getProgenitor),
-        PyMethodDef(Model, getRelation),
-        PyMethodDef(Model, isEquivalentTo),
-        PyMethodDef(Model, setID),
-        PyMethodDef(Model, setProgenitor),
-        { NULL, NULL, 0 }
+    PyMethodDef(Model, deleteFitTable),
+    PyMethodDef(Model, deleteRelationLinks),
+    PyMethodDef(Model, dump),
+    PyMethodDef(Model, get),
+    PyMethodDef(Model, getProgenitor),
+    PyMethodDef(Model, getRelation),
+    PyMethodDef(Model, isEquivalentTo),
+    PyMethodDef(Model, setID),
+    PyMethodDef(Model, setProgenitor),
+    PyMethodDef(Model, getPrintName),
+    PyMethodDef(Model, getStructMatrix),
+    { nullptr }
 };
 
-/****** Basic Type Operations ******/
-
-/* commented out because it is currently unused
- static PModel *
- newPModel()
- {
- PModel *self = new PModel();
- self->obj = new Model();
- return self;
- }
- */
-
-/* commented out because it is currently unused
- static void
- Model_dealloc(PModel *self)
- {
- //-- models are cached also
- delete self;
- }
- */
-
-PyObject * Model_getattr(PyObject *self, char *name) {
-    PyObject *method = Py_FindMethod(Model_methods, self, name);
-    if (method)
-        return method;
-
-    Model *model = ObjRef(self, Model);
-    //-- Other attributes
-    if (strcmp(name, "name") == 0) {
-        const char *printName = model->getPrintName();
-        return PyString_FromString(printName);
-    }
-
-    if (strcmp(name, "relcount") == 0) {
-        long relcount = model->getRelationCount();
-        return PyInt_FromLong(relcount);
-    }
-
-    int attindex = model->getAttributeList()->getAttributeIndex(name);
-    double value;
-    if (attindex < 0)
-        value = -1;
-    else
-        value = model->getAttributeList()->getAttributeByIndex(attindex);
-    return PyFloat_FromDouble(value);
-}
-
-int Model_setattr(PyObject *self, char *name, PyObject *value) {
-    double dvalue;
-    if (PyFloat_Check(value))
-        dvalue = PyFloat_AsDouble(value);
-    else if (PyLong_Check(value))
-        dvalue = PyLong_AsDouble(value);
-    else if (PyInt_Check(value))
-        dvalue = (double) PyInt_AsLong(value);
-    else
-        dvalue = -1;
-    ObjRef(self, Model)->setAttribute(name, dvalue);
-    return 0;
-}
-
 /****** Type Definition ******/
-
-PyTypeObject TModel = { PyObject_HEAD_INIT(&PyType_Type) 0, "Model", sizeof(PModel), 0,
-//-- standard methods
-        (destructor) 0,
-        (printfunc) 0,
-        (getattrfunc) Model_getattr,
-        (setattrfunc) Model_setattr,
-        (cmpfunc) 0,
-        (reprfunc) 0,
-
-        //-- type categories
-        0,
-        0,
-        0,
-
-        //-- more methods
-        (hashfunc) 0,
-        (ternaryfunc) 0,
-        (reprfunc) 0,
-        (getattrofunc) 0,
-        (setattrofunc) 0,
-    };
-
-DefinePyFunction(Model, new) {
-    if (!PyArg_ParseTuple(args, ""))
-        return NULL;
-    PModel *newobj = ObjNew(Model);
-    newobj->obj = new Model();
-    Py_INCREF(newobj);
-    return (PyObject*) newobj;
-}
+PyTypeObject TModel = {
+    PyVarObject_HEAD_INIT(&PyType_Type, 0)
+    .tp_name            = "Model_cpp",
+    .tp_basicsize       = sizeof(PModel),
+    .tp_itemsize        = NULL,
+    .tp_dealloc         = nullptr,
+    .tp_print           = nullptr,
+    .tp_getattr         = nullptr,
+    .tp_setattr         = nullptr,
+    .tp_as_async        = nullptr,
+    .tp_repr            = nullptr,
+    .tp_as_number       = nullptr,
+    .tp_as_sequence     = nullptr,
+    .tp_as_mapping      = nullptr,
+    .tp_hash            = nullptr,
+    .tp_call            = nullptr,
+    .tp_str             = nullptr,
+    .tp_getattro        = nullptr,
+    .tp_setattro        = (setattrofunc) Model_setattr,
+    .tp_as_buffer       = nullptr,
+    .tp_flags           = Py_TPFLAGS_DEFAULT,
+    .tp_doc             = nullptr,
+    .tp_traverse        = nullptr,
+    .tp_clear           = nullptr,
+    .tp_richcompare     = nullptr,
+    .tp_weaklistoffset  = NULL,
+    .tp_iter            = nullptr,
+    .tp_iternext        = nullptr,
+    .tp_methods         = Model_methods,
+};
 
 /************************/
 /****** Report ******/
 /************************/
 
-
-
-
-//getters - Capstone Team A
-
-DefinePyFunction(Report, getRelation){
-    Report* report = ObjRef(self, Report);
-    PRelation *list = ObjNew(Relation);
-    list->obj = report->getRelation();
-
-    Py_INCREF(var_list);
-
-    return (PyObject*) list;
-}
-
-DefinePyFunction(Report, getModel){
-    char *attrName;
-    PyArg_ParseTuple(args, "o", &attrName);
-    const char *value;
-    void *nextp = NULL;
-    PyObject *list = PyList_New(0);
-    //change to object
-    while (ObjRef(self, Report)->getOptionString(attrName, &nextp, &value) && nextp != NULL) {
-        PyObject *valstr = Py_BuildValue("o", value);
-        PyList_Append(list, valstr);
-    }
-    Py_INCREF(list);
-    return list;
-}
-
-DefinePyFunction(Report, getManager){
-    Report* report = ObjRef(self, Report);
-    PManager *list = ObjNew(Manager);
-    list->obj = report -> getManager();
-
-    Py_INCREF(list);
-
-    return (PyObject*) list;
-}
-
-//getters - Capstone Team A End
-
 // Object* get(char *name)
 DefinePyFunction(Report, get) {
-    Report *report = ObjRef(self, Report);      //Creates a reference to a variable of the Python wrapper type
+    Report *report = ObjRef(self, Report);
     TRACE_FN("Report::get", __LINE__, report);
     char *name;
     PyArg_ParseTuple(args, "s", &name);
@@ -1856,40 +1803,27 @@ DefinePyFunction(Report, dvName) {
     VBMManager* mgr = dynamic_cast<VBMManager*>(report->manager);
     VariableList* varlist = mgr->getVariableList();
     const char* abbrev = varlist->getVariable(varlist->getDV())->abbrev;
-    PyObject* name = PyString_FromString(abbrev);
+    PyObject* name = PyUnicode_FromString(abbrev);
     return name;
-}
-
-DefinePyFunction(Report, bestModelBIC) {
-    Report* report = ObjRef(self, Report);
-
-    /*
-     *  Find all of the best model(s) by BIC;
-     *  get the print name;
-     *  push it into a Python list;
-     *  finally return the list of all of the best models.
-     */
-
 }
 
 DefinePyFunction(Report, variableList) {
     Report* report = ObjRef(self, Report);
-    VBMManager* mgr = dynamic_cast<VBMManager*>(report->manager);
-    VariableList* varlist = mgr->getVariableList();
-    long var_count = varlist->getVarCount();
+    VBMManager* manager = dynamic_cast<VBMManager*>(report->manager);
+    VariableList *variable_list = manager->getVariableList();
 
-    PyObject* ret = PyList_New(var_count);
-    for (long i = 0; i < var_count; ++i) {
-
-        const char* printName = varlist->getVariable(i)->name;
-        const char* abbrevName = varlist->getVariable(i)->abbrev;
-        PyObject* name = PyString_FromString(printName);
-        PyObject* abbrev = PyString_FromString(abbrevName);
-        PyObject* names = PyTuple_Pack(2,name,abbrev);
-        PyList_SetItem(ret, i, names);
+    //Variable list is NULL
+    if(!variable_list)
+    {
+       Py_INCREF(Py_None);
+       return Py_None;
     }
 
-    return ret;
+    PVariableList *py_variable_list = ObjNew(VariableList);
+    py_variable_list->obj = variable_list;
+    Py_INCREF(py_variable_list);
+
+    return (PyObject*) py_variable_list;
 }
 
 DefinePyFunction(Report, bestModelData) {
@@ -1971,17 +1905,8 @@ DefinePyFunction(Report, bestModelData) {
 }
 
 
-<<<<<<< HEAD
-static struct PyMethodDef Report_methods[] = { 
-        PyMethodDef(Report, getRelation), PyMethodDef(Report, getModel), PyMethodDef(Report, getModel),
-        PyMethodDef(Report, bestModelName), PyMethodDef(Report, bestModelData), PyMethodDef(Report, get), PyMethodDef(Report, addModel),
-        PyMethodDef(Report, setDefaultFitModel), PyMethodDef(Report, setAttributes), PyMethodDef(Report, sort),
-        PyMethodDef(Report, printReport), PyMethodDef(Report, writeReport), PyMethodDef(Report, setSeparator),
-        PyMethodDef(Report, printResiduals), PyMethodDef(Report, printConditional_DV), PyMethodDef(Report, variableList), PyMethodDef(Report, dvName), PyMethodDef(Report, bestModelBIC), { NULL, NULL, 0 } };
-=======
 static struct PyMethodDef Report_methods[] = {
     PyMethodDef(Report, addModel),
-    PyMethodDef(Report, bestModelBIC),
     PyMethodDef(Report, bestModelData),
     PyMethodDef(Report, bestModelName),
     PyMethodDef(Report, dvName),
@@ -1995,57 +1920,40 @@ static struct PyMethodDef Report_methods[] = {
     PyMethodDef(Report, sort),
     PyMethodDef(Report, variableList),
     PyMethodDef(Report, writeReport),
-    { NULL, NULL, 0 }
+    { nullptr }
 };
->>>>>>> 2d8d1069796d72d6dae83d24c56d49930f41710f
-/****** Basic Type Operations ******/
-
-/* commented out because it is currently unused
- static void
- Report_dealloc(PReport *self)
- {
- Report *report = ObjRef(self, Report);
- TRACE_FN("Report::dealloc", __LINE__, report);
- delete report;
- delete self;
- TRACE_FN("Report::dealloc", __LINE__, 0);
- }
- */
-
-PyObject * Report_getattr(PyObject *self, char *name) {
-    //	TRACE_FN("Report::getattr", __LINE__);
-    PyObject *method = Py_FindMethod(Report_methods, self, name);
-    if (method)
-        return method;
-
-    //Report *report = ObjRef(self, Report);
-    //-- none defined
-    //	TRACE_FN("Report::getattr", __LINE__);
-    return NULL;
-}
 
 /****** Type Definition ******/
-PyTypeObject TReport = { PyObject_HEAD_INIT(&PyType_Type) 0, "Report", sizeof(PReport), 0,
-//-- standard methods
-        (destructor) 0,
-        (printfunc) 0,
-        (getattrfunc) Report_getattr,
-        (setattrfunc) 0,
-        (cmpfunc) 0,
-        (reprfunc) 0,
-
-        //-- type categories
-        0,
-        0,
-        0,
-
-        //-- more methods
-        (hashfunc) 0,
-        (ternaryfunc) 0,
-        (reprfunc) 0,
-        (getattrofunc) 0,
-        (setattrofunc) 0,
-    };
+PyTypeObject TReport = {
+    PyVarObject_HEAD_INIT(&PyType_Type, 0)
+    .tp_name            = "Report_cpp",
+    .tp_basicsize       = sizeof(PReport),
+    .tp_itemsize        = NULL,
+    .tp_dealloc         = nullptr,
+    .tp_print           = nullptr,
+    .tp_getattr         = nullptr,
+    .tp_setattr         = nullptr,
+    .tp_as_async        = nullptr,
+    .tp_repr            = nullptr,
+    .tp_as_number       = nullptr,
+    .tp_as_sequence     = nullptr,
+    .tp_as_mapping      = nullptr,
+    .tp_hash            = nullptr,
+    .tp_call            = nullptr,
+    .tp_str             = nullptr,
+    .tp_getattro        = nullptr,
+    .tp_setattro        = nullptr,
+    .tp_as_buffer       = nullptr,
+    .tp_flags           = Py_TPFLAGS_DEFAULT,
+    .tp_doc             = nullptr,
+    .tp_traverse        = nullptr,
+    .tp_clear           = nullptr,
+    .tp_richcompare     = nullptr,
+    .tp_weaklistoffset  = NULL,
+    .tp_iter            = nullptr,
+    .tp_iternext        = nullptr,
+    .tp_methods         = Report_methods,
+};
 
 
 /*
@@ -2097,41 +2005,81 @@ PyObject* variable_list_iternext(PyObject *self)
     return (PyObject *)py_variable;
 }
 
+DefinePyFunction(VariableList, getVarCount)
+{
+    VariableList *variable_list = ObjRef(self, VariableList);
+
+    return PyLong_FromLong(variable_list->getVarCount());
+}
+
+DefinePyFunction(VariableList, getVariable)
+{
+    int index;
+    PyArg_ParseTuple(args, "i", &index);
+
+    VariableList *variable_list = ObjRef(self, VariableList);
+
+    // Create a new Variable object and return it
+    PVariable *py_variable = ObjNew(Variable);
+    py_variable->obj = variable_list->getVariable(index);
+
+    Py_INCREF(py_variable);
+
+    return (PyObject *)py_variable;
+}
+
+DefinePyFunction(VariableList, isDirected)
+{
+    VariableList *variable_list = ObjRef(self, VariableList);
+
+    if(variable_list->isDirected())
+    {
+        Py_INCREF(Py_True);
+        return Py_True;
+    }
+
+    Py_INCREF(Py_False);
+    return Py_False;
+}
+
 static struct PyMethodDef VariableList_methods[] =
 {
-        { NULL, NULL, 0 }
+    PyMethodDef(VariableList, getVarCount),
+    PyMethodDef(VariableList, getVariable),
+    PyMethodDef(VariableList, isDirected),
+    { nullptr }
 };
 
 
-PyTypeObject TVariableList =
-{
-    PyObject_HEAD_INIT(&PyType_Type) 0,
-    "VariableList_cpp",
-    sizeof(VariableList),
-    0,
-    (destructor) 0,
-    (printfunc) 0,
-    (getattrfunc) 0,
-    (setattrfunc) 0,
-    (cmpfunc) 0,
-    (reprfunc) 0,
-    0,
-    0,
-    0,
-    (hashfunc) 0,
-    (ternaryfunc) 0,
-    (reprfunc) 0,
-    (getattrofunc) 0,
-    (setattrofunc) 0,
-    0,
-    Py_TPFLAGS_DEFAULT | Py_TPFLAGS_HAVE_ITER,
-    0, // tp_doc
-    0, // tp_traverse
-    0, // tp_clear
-    0, // tp_richcompare
-    0, // tp_weaklistoffset
-    (getiterfunc) variable_list_iter,
-    (iternextfunc) variable_list_iternext
+PyTypeObject TVariableList = {
+    PyVarObject_HEAD_INIT(&PyType_Type, 0)
+    .tp_name            = "VariableList_cpp",
+    .tp_basicsize       = sizeof(PVariableList),
+    .tp_itemsize        = NULL,
+    .tp_dealloc         = nullptr,
+    .tp_print           = nullptr,
+    .tp_getattr         = nullptr,
+    .tp_setattr         = nullptr,
+    .tp_as_async        = nullptr,
+    .tp_repr            = nullptr,
+    .tp_as_number       = nullptr,
+    .tp_as_sequence     = nullptr,
+    .tp_as_mapping      = nullptr,
+    .tp_hash            = nullptr,
+    .tp_call            = nullptr,
+    .tp_str             = nullptr,
+    .tp_getattro        = nullptr,
+    .tp_setattro        = nullptr,
+    .tp_as_buffer       = nullptr,
+    .tp_flags           = Py_TPFLAGS_DEFAULT,
+    .tp_doc             = nullptr,
+    .tp_traverse        = nullptr,
+    .tp_clear           = nullptr,
+    .tp_richcompare     = nullptr,
+    .tp_weaklistoffset  = NULL,
+    .tp_iter            = variable_list_iter,
+    .tp_iternext        = variable_list_iternext,
+    .tp_methods         = VariableList_methods
 };
 
 /*
@@ -2142,52 +2090,44 @@ DefinePyFunction(Variable, getAbbrev)
 {
     Variable *variable = ObjRef(self, Variable);
 
-    return PyString_FromString(variable->getAbbrev());
+    return PyUnicode_FromString(variable->getAbbrev());
 }
 
 static struct PyMethodDef Variable_methods[] =
 {
     PyMethodDef(Variable, getAbbrev),
-    { NULL, NULL, 0 }
+    { nullptr }
 };
 
-PyObject *Variable_getattr(PyObject *self, char *name) {
-    PyObject *method = Py_FindMethod(Variable_methods, self, name);
-    if (method)
-        return method;
-
-    return NULL;
-}
-
-PyTypeObject TVariable =
-{
-    PyObject_HEAD_INIT(&PyType_Type) 0,
-    "Variable_cpp",
-    sizeof(Variable),
-    0,
-    (destructor) 0,
-    (printfunc) 0,
-    (getattrfunc) Variable_getattr,
-    (setattrfunc) 0,
-    (cmpfunc) 0,
-    (reprfunc) 0,
-    0,
-    0,
-    0,
-    (hashfunc) 0,
-    (ternaryfunc) 0,
-    (reprfunc) 0,
-    (getattrofunc) 0,
-    (setattrofunc) 0,
-    0,
-    Py_TPFLAGS_DEFAULT, // FLAGS
-    0, // tp_doc
-    0, // tp_traverse
-    0, // tp_clear
-    0, // tp_richcompare
-    0, // tp_weaklistoffset
-    0, // getiterfunc
-    0  // iternextfunc
+PyTypeObject TVariable = {
+    PyVarObject_HEAD_INIT(&PyType_Type, 0)
+    .tp_name            = "Variable_cpp",
+    .tp_basicsize       = sizeof(PVariable),
+    .tp_itemsize        = NULL,
+    .tp_dealloc         = nullptr,
+    .tp_print           = nullptr,
+    .tp_getattr         = nullptr,
+    .tp_setattr         = nullptr,
+    .tp_as_async        = nullptr,
+    .tp_repr            = nullptr,
+    .tp_as_number       = nullptr,
+    .tp_as_sequence     = nullptr,
+    .tp_as_mapping      = nullptr,
+    .tp_hash            = nullptr,
+    .tp_call            = nullptr,
+    .tp_str             = nullptr,
+    .tp_getattro        = nullptr,
+    .tp_setattro        = nullptr,
+    .tp_as_buffer       = nullptr,
+    .tp_flags           = Py_TPFLAGS_DEFAULT,
+    .tp_doc             = nullptr,
+    .tp_traverse        = nullptr,
+    .tp_clear           = nullptr,
+    .tp_richcompare     = nullptr,
+    .tp_weaklistoffset  = NULL,
+    .tp_iter            = nullptr,
+    .tp_iternext        = nullptr,
+    .tp_methods         = Variable_methods,
 };
 
 /**************************/
@@ -2204,25 +2144,42 @@ static PyObject *setHTMLMode(PyObject *self, PyObject *args) {
 }
 
 static struct PyMethodDef occam_methods[] = {
-    { "Model", Model_new, 1 },
-    { "Relation", Relation_new, 1 },
-    { "SBMManager", SBMManager_new, 1 },
-    { "setHTMLMode", setHTMLMode, 1 },
-    { "VBMManager", VBMManager_new, 1 },
-    { NULL, NULL }
+    { "Relation",    (PyCFunction) Relation_new,    METH_VARARGS},
+    { "Model",       (PyCFunction) Model_new,       METH_VARARGS},
+    { "VBMManager",  (PyCFunction) VBMManager_new,  METH_VARARGS},
+    { "SBMManager",  (PyCFunction) SBMManager_new,  METH_VARARGS},
+    { "setHTMLMode", (PyCFunction) setHTMLMode,     METH_VARARGS},
+    {nullptr}
 };
 
-extern "C" {
-    SWIGEXPORT(void) initoccam();
-}
-;
+static struct PyModuleDef occam =
+{
+    PyModuleDef_HEAD_INIT,
+    "occam3",     /* name of module */
+    "",          /* module documentation, may be NULL */
+    -1,          /* size of per-interpreter state of the module, or -1 if the module keeps state in global variables. */
+    occam_methods
+};
 
-void initoccam() {
-    PyObject *m, *d;
-    m = Py_InitModule("occam", occam_methods); 
-    d = PyModule_GetDict(m);
-    ErrorObject = Py_BuildValue("s", "occam.error");
-    PyDict_SetItemString(d, "error", ErrorObject);
-    if (PyErr_Occurred())
-        Py_FatalError("cannot initialize module occam");
+PyMODINIT_FUNC PyInit_occam(void)
+{
+    Py_Initialize();
+    PyObject *m = PyModule_Create(&occam);
+
+    if (PyType_Ready(&TRelation) < 0)
+        return NULL;
+    if (PyType_Ready(&TModel) < 0)
+        return NULL;
+    if (PyType_Ready(&TVBMManager) < 0)
+        return NULL;
+    if (PyType_Ready(&TSBMManager) < 0)
+        return NULL;
+    if (PyType_Ready(&TReport) < 0)
+        return NULL;
+    if (PyType_Ready(&TVariableList) < 0)
+        return NULL;
+    if (PyType_Ready(&TVariable) < 0)
+        return NULL;
+
+    return m;
 }
