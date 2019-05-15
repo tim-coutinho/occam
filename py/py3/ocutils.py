@@ -615,7 +615,7 @@ class OCUtils:
         else:
             modset.discard("IVI")
 
-        if not have_ivs and not varset.issubset(modset):
+        if not (have_ivs or varset.issubset(modset)):
             self.newl()
             print(
                 f"\nERROR: Not all declared variables are present in the "

@@ -4,12 +4,9 @@
 # [This program is licensed under the GPL version 3 or later.]
 # Please see the file LICENSE in the source
 # distribution of this software for license terms.
-
-
 import cgi
 import cgitb
 import datetime
-import distanceFunctions
 import os
 import pickle
 import sys
@@ -19,12 +16,12 @@ import zipfile
 
 sys.path.insert(0, "../occampy3")
 
+import distanceFunctions
+import ocGraph
+from common import *
+from jobcontrol import JobControl
 from ocutils import OCUtils, Action
 from OpagCGI import OpagCGI
-from jobcontrol import JobControl
-from common import *
-import ocGraph
-
 from wrappers.manager import SearchFilter
 from wrappers.report import ReportSortName, SortDirection
 
@@ -102,12 +99,9 @@ def print_headers(form_fields, text_format):
 
 
 def print_top(template, text_format):
-    if text_format:
-        template.set_template('header.txt')
-    else:
-        template.set_template('header.html')
     args = {'version': VERSION, 'date': datetime.datetime.now().strftime("%c")}
-    template.out(args)
+    file = f"header.{'txt' if text_format else 'html'}"
+    template.out(args, file)
 
 
 def print_time(text_format):
@@ -232,8 +226,8 @@ def output_to_zip(oc):
     z.close()
 
     # print out the zipfile
-    handle = open(zipname)
-    contents = handle.read()
+    with open(zipname) as f:
+        contents = f.read()
     print(contents)
     sys.stdout.flush()
 
@@ -242,9 +236,8 @@ def output_to_zip(oc):
 # ---- print_bottom ---- Print bottom HTML part
 #
 def print_bottom():
-    template.set_template('footer.html')
     args = {}
-    template.out(args)
+    template.out(args, 'footer.html')
 
 
 #
@@ -256,33 +249,20 @@ def print_form(form_fields):
 
     if "formatText" in form_fields:
         form_fields['formatText'] = "checked"
-    template.set_template('switchform.html')
-    template.out(form_fields)
+    template.out(form_fields, 'switchform.html')
 
     if action in ["fit", "search", "SBsearch", "SBfit"]:
-
-        template.set_template("formheader.html")
-        template.out(form_fields)
+        template.out(form_fields, "formheader.html")
 
         cached = form_fields.get("cached")
 
-        if cached == "true":
-            template.set_template("cached_data.template.html")
-        else:
-            template.set_template("data.template.html")
-        template.out(form_fields)
-
-        template.set_template(f"{action}.template.html")
-        template.out(form_fields)
-        template.set_template("output.template.html")
-        template.out(form_fields)
-
-        template.set_template(f"{action}.footer.html")
-        template.out(form_fields)
-
+        file = f"{'cached_' if cached == "true" else ''}data.template.html"
+        template.out(form_fields, file)
+        template.out(form_fields, f"{action}.template.html")
+        template.out(form_fields, "output.template.html")
+        template.out(form_fields, f"{action}.footer.html")
     elif action in ["compare", "log", "fitbatch"]:
-        template.set_template(f"{action}form.html")
-        template.out(form_fields)
+        template.out(form_fields, f"{action}form.html")
 
     if action == "jobcontrol":
         JobControl().show_jobs(form_fields)
@@ -308,10 +288,8 @@ def get_data_file_alloc(form_fields, key='datafilename'):
         os.path.join(datadir, get_data_file_name(form_fields))
     )
     try:
-        outf = open(datafile, "w", 0o660)
-        data = form_fields["data"]
-        outf.write(data)
-        outf.close()
+        with open(datafile, "w", 0o660) as f:
+            print(form_fields["data"], file=f)
     except Exception:
         if get_data_file_name(form_fields) == "":
             print("ERROR: No data file specified.")
@@ -327,9 +305,8 @@ def get_data_file_alloc_by_name(fn, data):
         sys.exit()
     datafile = get_timestamped_filename(os.path.join(datadir, fn))
     try:
-        outf = open(datafile, "w", 0o660)
-        outf.write(data)
-        outf.close()
+        with open(datafile, "w", 0o660) as f:
+            f.write(data)
     except Exception:
         print(f"ERROR: Problems reading data file {datafile}.")
         sys.exit()
@@ -377,19 +354,23 @@ def prepare_cached_data(form_fields):
 
     def unpack_to_string(fn, data):
         rn = unzip_data_file(get_data_file_alloc_by_name(fn, data))
-        return open(rn).read(), rn
+        with open(rn) as f:
+            data = f.read()
+        return data, rn
 
     decls, decls_rn = unpack_to_string(decls_file_name, decls_file)
 
-    if data_file_name == "":  # search for the Cached Data Name and combine.
+    if data_file_name == "":  # Search for the Cached Data Name and combine.
         drn = os.path.join(datadir, data_refr_name)
-        if not os.path.isfile(drn):
+        try:
+            with open(drn) as f:
+                data = f.read()
+        except FileNotFoundError:
             print(
-                f"ERROR: Data file corresponding to Cached Data Name, '{data_refr_name}', does not exist"
+                "ERROR: Data file corresponding to Cached Data Name, "
+                f"'{data_refr_name}', does not exist"
             )
             sys.exit(1)
-        data = open(drn).read()
-
     else:
         data, data_refr_name = unpack_to_string(data_file_name, data_file)
 
@@ -397,13 +378,14 @@ def prepare_cached_data(form_fields):
     if test_file_name == "" and test_refr_name != "":
         trn = os.path.join(datadir, test_refr_name)
         print(trn)
-        if not os.path.isfile(trn):
+        try:
+            with open(trn) as f:
+                test = f.read()
+        except FileNotFoundError:
             print(
                 f"ERROR: Test file corresponding to Cached Test Name, '{test_refr_name}', does not exist"
             )
             sys.exit(1)
-        test = open(trn).read()
-
     elif test_file_name != "":
         test, test_refr_name = unpack_to_string(test_file_name, test_file)
 
@@ -470,9 +452,8 @@ def unzip_data_file(datafile):
             datafile = get_timestamped_filename(
                 os.path.join(datadir, ilist[0].filename)
             )
-            outf = open(datafile, "w")
-            outf.write(zipdata.read(ilist[0].filename))
-            outf.close()
+            with open(datafile, "w") as f:
+                print(zipdata.read(ilist[0].filename), file=f)
             os.remove(oldfile)
         except Exception:
             print("ERROR: Extracting zip file failed.")
@@ -908,9 +889,8 @@ def action_batch_compare(form_fields):
     def extract(x):
         try:
             d = get_unique_filename(os.path.join(datadir, x.filename))
-            outf = open(d, "w")
-            outf.write(zip_data.read(x.filename))
-            outf.close()
+            with open(d, "w") as f:
+                print(zip_data.read(x.filename), file=f)
             return d
         except Exception:
             print("ERROR: Extracting zip file failed.")
@@ -1322,9 +1302,8 @@ def start_batch(form_fields):
     datafilename = get_data_file_name(form_fields)
     toaddress = form_fields["batch_output"].lower()
     email_subject = form_fields["email_subject"]
-    f = open(ctlfilename, 'w', 0o660)
-    pickle.dump(form_fields, f)
-    f.close()
+    with open(ctlfilename, 'w', 0o660) as f:
+        pickle.dump(form_fields, f)
     appname = os.path.dirname(sys.argv[0])
     if not appname:
         appname = "."
@@ -1356,9 +1335,8 @@ def get_web_controls():
 #
 def get_batch_controls():
     ctlfile = sys.argv[1]
-    f = open(ctlfile, "r")
-    form_fields = pickle.load(f)
-    f.close()
+    with open(ctlfile) as f:
+        form_fields = pickle.load(f)
     os.remove(ctlfile)
     # set text mode
     form_fields["format"] = "text"
@@ -1374,11 +1352,10 @@ def print_batch_log(email):
     # perhaps we should do some check that this directory exists?
     file_ = os.path.join("batchlogs", email.lower())
     try:
-        f = open(file_)
-        logcontents = f.readlines()
-        the_log = '<BR>'.join(logcontents)
-        f.close()
-        print(the_log)
+        with open(file_) as f:
+            logcontents = f.readlines()
+        log = '<BR>'.join(logcontents)
+        print(log)
     except Exception:
         print(f"no log file found for {email}<br>")
 
