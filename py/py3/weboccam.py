@@ -17,7 +17,7 @@ import time
 import traceback
 import zipfile
 
-sys.path.insert(0, "./wrappers")
+sys.path.insert(0, "../occampy3")
 
 from ocutils import OCUtils, Action
 from OpagCGI import OpagCGI
@@ -64,7 +64,7 @@ def get_data_file_name(form_fields, trim=false, key='datafilename'):
 
 def use_gfx(form_fields):
     return (
-        "only_gfx" in form_fields
+        "onlyGfx" in form_fields
         or "gfx" in form_fields
         or "gephi" in form_fields
     )
@@ -254,8 +254,8 @@ def print_form(form_fields):
     template = OpagCGI()
     action = form_fields.get("action", "")
 
-    if "format_text" in form_fields:
-        form_fields['format_text'] = "checked"
+    if "formatText" in form_fields:
+        form_fields['formatText'] = "checked"
     template.set_template('switchform.html')
     template.out(form_fields)
 
@@ -546,9 +546,9 @@ def handle_graph_options(oc, form_fields):
             "gfx" in form_fields,
             layout=lo,
             gephi="gephi" in form_fields,
-            hideIV="hide_isolated" in form_fields,
-            hideDV="hideDV" in form_fields,
-            full_var_names="full_var_names" in form_fields,
+            hide_iv="hideIsolated" in form_fields,
+            hide_dv="hideDV" in form_fields,
+            full_var_names="fullVarNames" in form_fields,
             width=graph_width(),
             height=graph_height(),
             font_size=graph_font_size(),
@@ -571,7 +571,7 @@ def action_fit(form_fields):
     oc.set_data_file(form_fields["datafilename"])
     handle_graph_options(oc, form_fields)
 
-    if "calc_expectedDV" in form_fields:
+    if "calcExpectedDV" in form_fields:
         oc.set_calc_expected_dv(1)
 
     oc.set_ddf_method(1)
@@ -585,8 +585,8 @@ def action_fit(form_fields):
     # oc.set_values_are_functions(1)
 
     target = (
-        form_fields["negativeDVfor_confusion"]
-        if "negativeDVfor_confusion" in form_fields
+        form_fields["negativeDVforConfusion"]
+        if "negativeDVforConfusion" in form_fields
         else ""
     )
 
@@ -596,7 +596,7 @@ def action_fit(form_fields):
     if "data" not in form_fields or "model" not in form_fields:
         action_none(form_fields, "Missing form fields")
         return
-    only_gfx = "only_gfx" in form_fields
+    only_gfx = "onlyGfx" in form_fields
     process_fit(fn, form_fields["model"], target, oc, only_gfx)
     os.remove(fn)
 
@@ -647,12 +647,12 @@ def action_sb_fit(form_fields):
     maybe_skip_ivis(form_fields, oc)
 
     target = (
-        form_fields["negativeDVfor_confusion"]
-        if "negativeDVfor_confusion" in form_fields
+        form_fields["negativeDVforConfusion"]
+        if "negativeDVforConfusion" in form_fields
         else ""
     )
 
-    only_gfx = "only_gfx" in form_fields
+    only_gfx = "onlyGfx" in form_fields
     process_sb_fit(fn, form_fields["model"], target, oc, only_gfx)
     os.remove(fn)
 
@@ -1390,8 +1390,8 @@ def print_batch_log(email):
 
 def start_normal(form_fields):
     # if any subject line was supplied, print it
-    if "email_subject" in form_fields and form_fields["email_subject"]:
-        print(f"Subject line:,{form_fields['email_subject']}")
+    if "emailSubject" in form_fields and form_fields["emailSubject"]:
+        print(f"Subject line:,{form_fields['emailSubject']}")
 
     try:
         if form_fields["action"] == "fit":
@@ -1462,7 +1462,7 @@ else:
     form_fields = get_web_controls()
 
 text_format = form_fields.get("format", "") != ""
-if "batch_output" in form_fields and form_fields["batch_output"]:
+if "batchOutput" in form_fields and form_fields["batchOutput"]:
     text_format = 0
 
 print_headers(form_fields, text_format)
@@ -1472,7 +1472,7 @@ if "printoptions" in form_fields:
 
 print_top(template, text_format)
 
-if "batch_output" in form_fields and form_fields["batch_output"]:
+if "batchOutput" in form_fields and form_fields["batchOutput"]:
     text_format = 0
 
     r1 = form_fields.pop('gfx', None)
@@ -1495,7 +1495,7 @@ if "data" not in form_fields and "email" not in form_fields:
 if "action" in form_fields:
 
     # If this is running from web server, and batch mode requested, then start a background task
-    if "batch_output" in form_fields and form_fields["batch_output"]:
+    if "batchOutput" in form_fields and form_fields["batchOutput"]:
         start_batch(form_fields)
     else:
         start_normal(form_fields)

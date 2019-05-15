@@ -19,13 +19,11 @@ from wrappers.manager import (
     SearchFilter,
     SearchType,
 )
-from wrappers.model import ModelType
-from wrappers.report import ReportSortName, SeparatorType, SortDirection
-from wrappers.sbm_manager import SBMManager
-from wrappers.vbm_manager import VBMManager
+from model import ModelType
+from report import ReportSortName, SeparatorType, SortDirection
+from sbm_manager import SBMManager
+from vbm_manager import VBMManager
 
-totalgen = 0
-totalkept = 0
 max_memory_to_use = 8 * 2 ** 30
 
 

@@ -1,8 +1,8 @@
 from enum import Enum
 from typing import Dict
 
-from model import Model
-from variable_list import VariableList
+from .model import Model
+from .variable_list import VariableList
 
 
 class SeparatorType(Enum):
@@ -65,7 +65,7 @@ class Report:
             model.ref, calc_expected_dv, classifier_target
         )
 
-    def print_residuals(self,model: Model,skip_trained_model_table: bool,skip_ivi_tables: bool) -> None:
+    def print_residuals(self, model: Model, skip_trained_model_table: bool, skip_ivi_tables: bool) -> None:
         self._ref.printResiduals(
             model.ref, skip_trained_model_table, skip_ivi_tables
         )
