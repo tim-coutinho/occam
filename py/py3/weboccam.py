@@ -127,7 +127,7 @@ def attempt_parse_int(string, default, msg, verbose):
     try:
         return int(string)
 
-    except ValueError:
+    except (ValueError, TypeError):
         if verbose:
             print(
                 (
@@ -142,7 +142,7 @@ def attempt_parse_int(string, default, msg, verbose):
 
 def graph_width():
     return attempt_parse_int(
-        form_fields.get("graph_width", ""),
+        form_fields.get("graph_width"),
         640,
         "hypergraph image width",
         "gfx" in form_fields,
@@ -151,7 +151,7 @@ def graph_width():
 
 def graph_height():
     return attempt_parse_int(
-        form_fields.get("graph_height", ""),
+        form_fields.get("graph_height"),
         480,
         "hypergraph image height",
         "gfx" in form_fields,
@@ -160,7 +160,7 @@ def graph_height():
 
 def graph_font_size():
     return attempt_parse_int(
-        form_fields.get("graph_font_size", ""),
+        form_fields.get("graph_font_size"),
         12,
         "hypergraph font size",
         "gfx" in form_fields,
@@ -169,7 +169,7 @@ def graph_font_size():
 
 def graph_node_size():
     return attempt_parse_int(
-        form_fields.get("graph_node_size", ""),
+        form_fields.get("graph_node_size"),
         24,
         "hypergraph node size",
         "gfx" in form_fields,
@@ -252,7 +252,7 @@ def print_bottom():
 #
 def print_form(form_fields):
     template = OpagCGI()
-    action = form_fields.get("action", "")
+    action = form_fields.get("action")
 
     if "formatText" in form_fields:
         form_fields['formatText'] = "checked"
@@ -264,14 +264,13 @@ def print_form(form_fields):
         template.set_template("formheader.html")
         template.out(form_fields)
 
-        cached = form_fields.get("cached", "")
+        cached = form_fields.get("cached")
 
         if cached == "true":
             template.set_template("cached_data.template.html")
-            template.out(form_fields)
         else:
             template.set_template("data.template.html")
-            template.out(form_fields)
+        template.out(form_fields)
 
         template.set_template(f"{action}.template.html")
         template.out(form_fields)
@@ -521,7 +520,7 @@ def process_sb_fit(fn, model, negative_dv_for_confusion, oc, only_gfx):
 
 
 def maybe_skip_residuals(form_fields, oc):
-    skip_residuals_flag = form_fields.get("skipresiduals", "")
+    skip_residuals_flag = form_fields.get("skipresiduals")
     if skip_residuals_flag:
         oc.set_skip_trained_model_table(1)
     else:
@@ -529,7 +528,7 @@ def maybe_skip_residuals(form_fields, oc):
 
 
 def maybe_skip_ivis(form_fields, oc):
-    skip_residuals_flag = form_fields.get("skipivitables", "")
+    skip_residuals_flag = form_fields.get("skipivitables")
     if skip_residuals_flag:
         oc.set_skipIVITables(1)
     else:
@@ -575,7 +574,7 @@ def action_fit(form_fields):
         oc.set_calc_expected_dv(1)
 
     oc.set_ddf_method(1)
-    skip_nominal_flag = form_fields.get("skipnominal", "")
+    skip_nominal_flag = form_fields.get("skipnominal")
     if skip_nominal_flag:
         oc.set_skip_nominal(1)
     if "defaultmodel" in form_fields:
@@ -632,14 +631,14 @@ def action_sb_fit(form_fields):
         print('</pre>')
     oc.set_data_file(form_fields["datafilename"])
     handle_graph_options(oc, form_fields)
-    # function_flag = form_fields.get("functionvalues", "")
+    # function_flag = form_fields.get("functionvalues")
     # if function_flag:
-    # oc.set_values_are_functions(1)
+    #     oc.set_values_are_functions(1)
     if "data" not in form_fields or "model" not in form_fields:
         action_none(form_fields, "Missing form fields")
         os.remove(fn)
         return
-    skip_nominal_flag = form_fields.get("skipnominal", "")
+    skip_nominal_flag = form_fields.get("skipnominal")
     if skip_nominal_flag:
         oc.set_skip_nominal(1)
 
@@ -678,7 +677,7 @@ def action_search(form_fields):
         action_form(form_fields, "Missing form fields")
         print("missing data")
         return
-    # text_format = form_fields.get("format", "")
+    # text_format = form_fields.get("format")
     if text_format:
         oc.set_report_separator(OCUtils.COMMA_SEP)
     else:
@@ -693,13 +692,13 @@ def action_search(form_fields):
         oc.set_search_width(width)
     report_sort = form_fields.get("sortreportby", "")
     search_sort = form_fields.get("sortby", "")
-    inverse_flag = form_fields.get("inversenotation", "")
+    inverse_flag = form_fields.get("inversenotation")
     if inverse_flag:
         oc.set_use_inverse_notation(1)
-    skip_nominal_flag = form_fields.get("skipnominal", "")
+    skip_nominal_flag = form_fields.get("skipnominal")
     if skip_nominal_flag:
         oc.set_skip_nominal(1)
-    function_flag = form_fields.get("functionvalues", "")
+    function_flag = form_fields.get("functionvalues")
     if function_flag:
         oc.set_values_are_functions(1)
     oc.set_start_model(form_fields.get("model", "default"))
@@ -734,35 +733,34 @@ def action_search(form_fields):
         reportvars += ", bp_aic, bp_bic"
     """
     reportvars = "Level$I"
-    if form_fields.get("show_h", ""):
+    if form_fields.get("show_h"):
         reportvars += ", h"
     reportvars += ", ddf"
-    if form_fields.get("show_dlr", ""):
+    if form_fields.get("show_dlr"):
         reportvars += ", lr"
     if (
-        form_fields.get("show_alpha", "")
-        or search_sort == "alpha"
+        form_fields.get("show_alpha")
+        or search_sort == ReportSortName.ALPHA
         or report_sort == ReportSortName.ALPHA
     ):
         reportvars += ", alpha"
     reportvars += ", information"
-    if oc.is_directed:
-        if form_fields.get("show_pct_dh", ""):
-            reportvars += ", cond_pct_dh"
+    if oc.is_directed and form_fields.get("show_pct_dh"):
+        reportvars += ", cond_pct_dh"
     if (
-        form_fields.get("show_aic", "")
-        or search_sort == "aic"
+        form_fields.get("show_aic")
+        or search_sort == ReportSortName.AIC
         or report_sort == ReportSortName.AIC
     ):
         reportvars += ", aic"
     if (
-        form_fields.get("show_bic", "")
-        or search_sort == "bic"
+        form_fields.get("show_bic")
+        or search_sort == ReportSortName.BIC
         or report_sort == ReportSortName.BIC
     ):
         reportvars += ", bic"
 
-    if form_fields.get("show_incr_a", ""):
+    if form_fields.get("show_incr_a"):
         reportvars += ", incr_alpha, prog_id"
 
     # INTENTIONALLY COMMENTED OUT CODE IN THIS MULTILINE STRING!!!
@@ -770,24 +768,23 @@ def action_search(form_fields):
     # but it is not currently used (and the HTML forms do not define "evalmode"
     # so it will crash!!)
     disabled_bp_code = """
-        if form_fields.get("show_bp", "") and form_fields["evalmode"] != "bp":
+        if form_fields.get("show_bp") and form_fields["evalmode"] != "bp":
             reportvars += ", bp_t"
         """
 
-    if oc.is_directed:
-        if (
-            form_fields.get("show_pct", "")
-            or form_fields.get("show_pct_cover", "")
-            or search_sort == "pct_correct_data"
-            or report_sort == ReportSortName.PCT_CORRECT_DATA
-        ):
-            reportvars += ", pct_correct_data"
-            if form_fields.get("show_pct_cover", ""):
-                reportvars += ", pct_coverage"
-            if oc.has_test_data():
-                reportvars += ", pct_correct_test"
-                if form_fields.get("show_pct_miss", ""):
-                    reportvars += ", pct_missed_test"
+    if oc.is_directed and (
+        form_fields.get("show_pct")
+        or form_fields.get("show_pct_cover")
+        or search_sort == ReportSortName.PCT_CORRECT_DATA
+        or report_sort == ReportSortName.PCT_CORRECT_DATA
+    ):
+        reportvars += ", pct_correct_data"
+        if form_fields.get("show_pct_cover"):
+            reportvars += ", pct_coverage"
+        if oc.has_test_data():
+            reportvars += ", pct_correct_test"
+            if form_fields.get("show_pct_miss"):
+                reportvars += ", pct_missed_test"
     oc.set_report_sort_name(report_sort)
     oc.sort_name = search_sort
     oc.set_report_variables(reportvars)
@@ -845,7 +842,7 @@ def action_batch_compare(form_fields):
     for r, rf in [(report_1, report_fields_1), (report_2, report_fields_2)]:
         for key in sorted(rf):
             if (
-                form_fields.get(key, "") == "yes"
+                form_fields.get(key) == "yes"
                 or d[search["selection function"]] == key
             ):
                 r.append(key)
@@ -1145,7 +1142,7 @@ def action_sb_search(form_fields):
         action_form(form_fields, "Missing form fields")
         print("missing data")
         return
-    # text_format = form_fields.get("format", "")
+    # text_format = form_fields.get("format")
     if text_format:
         oc.set_report_separator(OCUtils.COMMA_SEP)
     else:
@@ -1159,13 +1156,13 @@ def action_sb_search(form_fields):
         oc.set_search_width(width)
     report_sort = form_fields.get("sortreportby", "")
     search_sort = form_fields.get("sortby", "")
-    inverse_flag = form_fields.get("inversenotation", "")
+    inverse_flag = form_fields.get("inversenotation")
     if inverse_flag:
         oc.set_use_inverse_notation(1)
-    skip_nominal_flag = form_fields.get("skipnominal", "")
+    skip_nominal_flag = form_fields.get("skipnominal")
     if skip_nominal_flag:
         oc.set_skip_nominal(1)
-    function_flag = form_fields.get("functionvalues", "")
+    function_flag = form_fields.get("functionvalues")
     if function_flag:
         oc.set_values_are_functions(1)
     oc.set_start_model(form_fields.get("model", "default"))
@@ -1199,35 +1196,34 @@ def action_sb_search(form_fields):
         reportvars += ", bp_aic, bp_bic"
     """
     reportvars = "Level$I"
-    if form_fields.get("show_h", ""):
+    if form_fields.get("show_h"):
         reportvars += ", h"
     reportvars += ", ddf"
-    if form_fields.get("show_dlr", ""):
+    if form_fields.get("show_dlr"):
         reportvars += ", lr"
     if (
-        form_fields.get("show_alpha", "")
-        or search_sort == "alpha"
+        form_fields.get("show_alpha")
+        or search_sort == ReportSortName.ALPHA
         or report_sort == ReportSortName.ALPHA
     ):
         reportvars += ", alpha"
     reportvars += ", information"
-    if oc.is_directed:
-        if form_fields.get("show_pct_dh", ""):
-            reportvars += ", cond_pct_dh"
+    if oc.is_directed and form_fields.get("show_pct_dh"):
+        reportvars += ", cond_pct_dh"
     if (
-        form_fields.get("show_aic", "")
-        or search_sort == "aic"
+        form_fields.get("show_aic")
+        or search_sort == ReportSortName.AIC
         or report_sort == ReportSortName.AIC
     ):
         reportvars += ", aic"
     if (
-        form_fields.get("show_bic", "")
-        or search_sort == "bic"
+        form_fields.get("show_bic")
+        or search_sort == ReportSortName.BIC
         or report_sort == ReportSortName.BIC
     ):
         reportvars += ", bic"
 
-    if form_fields.get("show_incr_a", ""):
+    if form_fields.get("show_incr_a"):
         reportvars += ", incr_alpha, prog_id"
 
     # INTENTIONALLY COMMENTED OUT CODE IN THIS MULTILINE STRING!!!
@@ -1235,24 +1231,23 @@ def action_sb_search(form_fields):
     # but it is not currently used (and the HTML forms do not define "evalmode"
     # so it will crash!!)
     disabled_bp_code = """
-        if form_fields.get("show_bp", "") and form_fields["evalmode"] != "bp":
+        if form_fields.get("show_bp") and form_fields["evalmode"] != "bp":
             reportvars += ", bp_t"
         """
 
-    if oc.is_directed:
-        if (
-            form_fields.get("show_pct", "")
-            or form_fields.get("show_pct_cover", "")
-            or search_sort == "pct_correct_data"
-            or report_sort == ReportSortName.PCT_CORRECT_DATA
-        ):
-            reportvars += ", pct_correct_data"
-            if form_fields.get("show_pct_cover", ""):
-                reportvars += ", pct_coverage"
-            if oc.has_test_data():
-                reportvars += ", pct_correct_test"
-                if form_fields.get("show_pct_miss", ""):
-                    reportvars += ", pct_missed_test"
+    if oc.is_directed and (
+        form_fields.get("show_pct")
+        or form_fields.get("show_pct_cover")
+        or search_sort == ReportSortName.PCT_CORRECT_DATA
+        or report_sort == ReportSortName.PCT_CORRECT_DATA
+    ):
+        reportvars += ", pct_correct_data"
+        if form_fields.get("show_pct_cover"):
+            reportvars += ", pct_coverage"
+        if oc.has_test_data():
+            reportvars += ", pct_correct_test"
+            if form_fields.get("show_pct_miss"):
+                reportvars += ", pct_missed_test"
     oc.set_report_sort_name(report_sort)
     oc.sort_name = search_sort
     oc.set_report_variables(reportvars)
@@ -1269,9 +1264,9 @@ def action_sb_search(form_fields):
 #
 # ---- action_show_log ---- show job log given email
 def action_show_log(form_fields):
-    email = form_fields.get("email", "").lower()
+    email = form_fields.get("email")
     if email:
-        print_batch_log(email)
+        print_batch_log(email.lower())
 
 
 # ---- action_error ---- print error on unknown action
@@ -1390,7 +1385,7 @@ def print_batch_log(email):
 
 def start_normal(form_fields):
     # if any subject line was supplied, print it
-    if "emailSubject" in form_fields and form_fields["emailSubject"]:
+    if form_fields.get("emailSubject"):
         print(f"Subject line:,{form_fields['emailSubject']}")
 
     try:
@@ -1449,7 +1444,7 @@ template = OpagCGI()
 datafile = ""
 text_format = ""
 print_options = ""
-# thispage = os.environ.get('SCRIPT_NAME', '')
+# thispage = os.getenv('SCRIPT_NAME', '')
 startt = time.time()
 
 # See if this is a batch run or a web server run
@@ -1462,7 +1457,7 @@ else:
     form_fields = get_web_controls()
 
 text_format = form_fields.get("format", "") != ""
-if "batchOutput" in form_fields and form_fields["batchOutput"]:
+if form_fields.get("batchOutput"):
     text_format = 0
 
 print_headers(form_fields, text_format)
@@ -1472,7 +1467,7 @@ if "printoptions" in form_fields:
 
 print_top(template, text_format)
 
-if "batchOutput" in form_fields and form_fields["batchOutput"]:
+if form_fields.get("batchOutput"):
     text_format = 0
 
     r1 = form_fields.pop('gfx', None)
@@ -1495,7 +1490,7 @@ if "data" not in form_fields and "email" not in form_fields:
 if "action" in form_fields:
 
     # If this is running from web server, and batch mode requested, then start a background task
-    if "batchOutput" in form_fields and form_fields["batchOutput"]:
+    if form_fields.get("batchOutput"):
         start_batch(form_fields)
     else:
         start_normal(form_fields)

@@ -319,42 +319,28 @@ class OCUtils:
 
     # This function returns the name of the search strategy to use based on
     # the search_mode and loopless settings above
-    def search_type(self) -> SearchType:
+    def search_type(self, sb=False) -> Union[SearchType, SBSearchType]:
+        search_type = SBSearchType if sb else SearchType
         if self.search_dir == SearchDirection.UP:
             return {
-                SearchFilter.LOOPLESS: SearchType.LOOPLESS_UP,
-                SearchFilter.DISJOINT: SearchType.DISJOINT_UP,
-                SearchFilter.CHAIN: SearchType.CHAIN_UP,
-            }.get(self._search_filter, SearchType.FULL_UP)
+                SearchFilter.LOOPLESS: search_type.LOOPLESS_UP,
+                SearchFilter.DISJOINT: search_type.DISJOINT_UP,
+                SearchFilter.CHAIN: search_type.CHAIN_UP,
+            }.get(self._search_filter, search_type.FULL_UP)
         else:
             return {
-                SearchFilter.LOOPLESS: SearchType.LOOPLESS_DOWN,
-                SearchFilter.DISJOINT: SearchType.DISJOINT_DOWN,
-                SearchFilter.CHAIN: SearchType.CHAIN_DOWN,
-            }.get(self._search_filter, SearchType.FULL_DOWN)
-
-    def sb_search_type(self) -> SBSearchType:
-        if self.search_dir == SearchDirection.UP:
-            return {
-                SearchFilter.LOOPLESS: SBSearchType.LOOPLESS_UP,
-                SearchFilter.DISJOINT: SBSearchType.DISJOINT_UP,
-                SearchFilter.CHAIN: SBSearchType.CHAIN_UP,
-            }.get(self._search_filter, SBSearchType.FULL_UP)
-        else:
-            return {
-                SearchFilter.LOOPLESS: SBSearchType.LOOPLESS_DOWN,
-                SearchFilter.DISJOINT: SBSearchType.DISJOINT_DOWN,
-                SearchFilter.CHAIN: SBSearchType.CHAIN_DOWN,
-            }.get(self._search_filter, SBSearchType.FULL_DOWN)
+                SearchFilter.LOOPLESS: search_type.LOOPLESS_DOWN,
+                SearchFilter.DISJOINT: search_type.DISJOINT_DOWN,
+                SearchFilter.CHAIN: search_type.CHAIN_DOWN,
+            }.get(self._search_filter, search_type.FULL_DOWN)
 
     def do_search(self, print_options: int) -> None:
-        if self._manager.is_directed:
-            if (
-                self.search_dir == SearchDirection.DOWN
-                and self._search_filter == SearchFilter.CHAIN
-            ):
-                print('ERROR: Directed Down Chain Search not yet implemented.')
-                raise sys.exit()
+        if self._manager.is_directed and (
+            self.search_dir == SearchDirection.DOWN
+            and self._search_filter == SearchFilter.CHAIN
+        ):
+            print('ERROR: Directed Down Chain Search not yet implemented.')
+            raise sys.exit()
         else:
             if (
                 self.search_dir == SearchDirection.UP
@@ -408,7 +394,7 @@ class OCUtils:
         try:
             self._manager.search_type = self.search_type()
         except Exception:
-            print(f"ERROR: UNDEFINED SEARCH TYPE {self.search_type()}")
+            print(f"ERROR: UNDEFINED SEARCH FILTER {self._search_filter}")
             return
         # process each level, up to the number of levels indicated. Each of the best models
         # is added to the report generator for later output
@@ -493,9 +479,9 @@ class OCUtils:
         start.progenitor = start
         old_models = [start]
         try:
-            self._manager.search_type = self.sb_search_type()
+            self._manager.search_type = self.search_type(sb=True)
         except Exception:
-            print(f"ERROR: UNDEFINED SEARCH TYPE {self.sb_search_type()}")
+            print(f"ERROR: UNDEFINED SEARCH FILTER {self._search_filter}")
             return
         self.newl('<pre>')
         print("Searching levels:")
@@ -622,25 +608,24 @@ class OCUtils:
         else:
             modset.discard("IVI")
 
-        if not have_ivs:
-            if not varset.issubset(modset):
-                self.newl()
+        if not have_ivs and not varset.issubset(modset):
+            self.newl()
+            print(
+                f"\nERROR: Not all declared variables are present in the model, '{model_name}'."
+            )
+            self.newl()
+            if saw_maybe_wrong_iv:
                 print(
-                    f"\nERROR: Not all declared variables are present in the model, '{model_name}'."
+                    f"\n_did you mean '{'IV' if is_directed else 'IVI'}' instead of '{'IVI' if is_directed else 'IV'}"
                 )
-                self.newl()
-                if saw_maybe_wrong_iv:
-                    print(
-                        f"\n_did you mean '{'IV' if is_directed else 'IVI'}' instead of '{'IVI' if is_directed else 'IV'}"
-                    )
-                else:
-                    print(
-                        f"\n Did you forget the {'IV' if is_directed else 'IVI'} component?"
-                    )
-                self.newl()
-                print("\n Not in model: ")
-                print(", ".join([f"'{i}'" for i in varset.difference(modset)]))
-                sys.exit(1)
+            else:
+                print(
+                    f"\n Did you forget the {'IV' if is_directed else 'IVI'} component?"
+                )
+            self.newl()
+            print("\n Not in model: ")
+            print(", ".join([f"'{i}'" for i in varset.difference(modset)]))
+            sys.exit(1)
 
         # all variables in model are in varlist
         if not modset.issubset(varset):
@@ -773,24 +758,15 @@ class OCUtils:
                 print("<hr>")
 
     def generate_graph(self, model) -> None:
-        varlist = self._report.variable_list
-        hide_iv = self._hide_isolated
-        hide_dv = self._graph_hideDV
-        full_var_names = self._full_var_names
-        dv_name = ""
-        all_higher_order = self._layout_style == "bipartite"
-        if self.is_directed:
-            dv_name = self._report.dv_name
-
         if model not in self.graphs:
             self.graphs[model] = ocGraph.generate(
                 model,
-                varlist,
-                hide_iv,
-                hide_dv,
-                dv_name,
-                full_var_names,
-                all_higher_order,
+                varlist=self._report.variable_list,
+                hide_iv=self._hide_isolated,
+                hide_dv=self._graph_hideDV,
+                dv_name=self._report.dv_name if self.is_directed else "",
+                full_var_names=self._full_var_names,
+                all_higher_order=self._layout_style == "bipartite",
             )
 
     def set_gfx(

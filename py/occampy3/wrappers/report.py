@@ -18,14 +18,14 @@ class SortDirection(Enum):
 
 
 class ReportSortName(Enum):
-    INFORMATION = "information"
-    BPT = "bp_t"
-    PCT_CORRECT_DATA = "pct_correct_data"
     AIC = "aic"
-    BIC = "bic"
     ALPHA = "alpha"
+    BIC = "bic"
     BP_ALPHA = "bp_alpha"
     BP_INFORMATION = "bp_information"
+    BPT = "bp_t"
+    INFORMATION = "information"
+    PCT_CORRECT_DATA = "pct_correct_data"
 
 
 class Report:
