@@ -1,6 +1,7 @@
 import occam
 from manager import Manager
 from model import Model
+from variable_list import VariableList
 
 
 class SBMManager(Manager):
@@ -18,7 +19,7 @@ class SBMManager(Manager):
         return Model(self._ref.makeSbModel(model_name, make_project))
 
     @property
-    def test_sample_size(self) -> double:
+    def test_sample_size(self) -> float:
         return self._ref.getTestSampleSz()
 
     @property
