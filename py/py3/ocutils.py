@@ -6,23 +6,23 @@
 
 # coding=utf8
 import heapq
-import ocGraph
 import re
 import sys
 import time
-from typing import Dict, List, Sequence, Union
-
 from enum import Enum
+from typing import Dict, List, Sequence, Tuple, Union
+
+import ocGraph
+from model import ModelType
+from report import ReportSortName, SeparatorType, SortDirection
+from sbm_manager import SBMManager
+from vbm_manager import VBMManager
 from wrappers.manager import (
     SBSearchType,
     SearchDirection,
     SearchFilter,
     SearchType,
 )
-from model import ModelType
-from report import ReportSortName, SeparatorType, SortDirection
-from sbm_manager import SBMManager
-from vbm_manager import VBMManager
 
 max_memory_to_use = 8 * 2 ** 30
 
@@ -252,13 +252,18 @@ class OCUtils:
     # any which haven't been seen before puts them into the new_model list
     # this function also computes the LR statistics (H, LR, DF, etc.) as well
     # as the dependent statistics (dH, %dH, etc.)
-    def process_model(self, level: int, new_models_heap, model: Model) -> int:
+    def process_model(
+        self,
+        level: int,
+        new_models_heap: List[Tuple[Union[str, float], Union[str, float], Model]],
+        model: Model
+    ) -> int:
         add_count = 0
         generated_models = self._manager.search_one_level(model)
         for new_model in generated_models:
             if new_model.get_attribute_value("processed") <= 0.0:
                 new_model.processed = 1.0
-                new_model.level = level
+                new_model.level = level  # Unused?
                 new_model.progenitor = model
                 self.compute_sort_statistic(new_model)
                 # need a fix here (or somewhere) to check for (and remove) models that have the same DF as the progenitor
@@ -385,7 +390,7 @@ class OCUtils:
             self._manager.compute_percent_correct(start)
         if self._incremental_alpha:
             self._manager.compute_incremental_alpha(start)
-        start.level = 0
+        start.level = 0  # Unused?
         self._report.add_model(start)
         self._next_id = 1
         start.id_ = self._next_id
@@ -412,7 +417,8 @@ class OCUtils:
             )
             current_time = time.time()
             print(
-                f'{current_time - last_time:.1f} seconds, {current_time - start_time:.1f} total'
+                f'{current_time - last_time:.1f} seconds, '
+                f'{current_time - start_time:.1f} total'
             )
             sys.stdout.flush()
             last_time = current_time
@@ -472,7 +478,7 @@ class OCUtils:
             self._manager.compute_percent_correct(start)
         if self._incremental_alpha:
             self._manager.compute_incremental_alpha(start)
-        start.level = 0
+        start.level = 0  # Unused?
         self._report.add_model(start)
         self._next_id = 1
         start.id_ = self._next_id
@@ -497,7 +503,8 @@ class OCUtils:
             )
             current_time = time.time()
             print(
-                f'{current_time - last_time:.1f} seconds, {current_time - start_time:.1f} total'
+                f'{current_time - last_time:.1f} seconds, '
+                f'{current_time - start_time:.1f} total'
             )
             last_time = current_time
             for model in new_models:
@@ -611,12 +618,14 @@ class OCUtils:
         if not have_ivs and not varset.issubset(modset):
             self.newl()
             print(
-                f"\nERROR: Not all declared variables are present in the model, '{model_name}'."
+                f"\nERROR: Not all declared variables are present in the "
+                f"model, '{model_name}'."
             )
             self.newl()
             if saw_maybe_wrong_iv:
                 print(
-                    f"\n_did you mean '{'IV' if is_directed else 'IVI'}' instead of '{'IVI' if is_directed else 'IV'}"
+                    f"\n_did you mean '{'IV' if is_directed else 'IVI'}' "
+                    f"instead of '{'IVI' if is_directed else 'IV'}"
                 )
             else:
                 print(
@@ -631,13 +640,15 @@ class OCUtils:
         if not modset.issubset(varset):
             self.newl()
             print(
-                f"\nERROR: Not all variables in the model '{model_name}' are declared in the variable list."
+                f"\nERROR: Not all variables in the model '{model_name}' are "
+                f"declared in the variable list."
             )
             self.newl()
             diffset = modset.difference(varset)
             if saw_maybe_wrong_iv or diffset == {"I", "V"}:
                 print(
-                    f"\n_did you mean '{'IV' if is_directed else 'IVI'}' instead of '{'IVI' if is_directed else 'IV'}'?"
+                    f"\n_did you mean '{'IV' if is_directed else 'IVI'}' "
+                    f"instead of '{'IVI' if is_directed else 'IV'}'?"
                 )
             else:
                 print("\n Not declared: ")
@@ -652,7 +663,8 @@ class OCUtils:
                 if not (rel == ["IVI"] or rel == ["IV"]) and dv not in rel:
                     self.newl()
                     print(
-                        f"\nERROR: In the model '{model_name}', model component '{''.join(rel)}' is missing the DV, '{dv}'."
+                        f"\nERROR: In the model '{model_name}', model component "
+                        f"'{''.join(rel)}' is missing the DV, '{dv}'."
                     )
                     sys.exit(1)
 
@@ -732,7 +744,8 @@ class OCUtils:
             if self._HTMLFormat:
                 if header:
                     print(
-                        f"Hypergraph model visualization for the Model {model} (using the {self._layout_style} layout algorithm)<br>"
+                        f"Hypergraph model visualization for the Model {model}"
+                        f" (using the {self._layout_style} layout algorithm)<br>"
                     )
                 ocGraph.print_svg(
                     self.graphs[model],
@@ -834,21 +847,21 @@ class OCUtils:
             print("\n")
 
     def occam2_settings(self) -> None:
-        option = self._manager.get_option("action")
-        if option != "":
-            self._action = Action(option)
-        option = self._manager.get_option("search-levels")
-        if option != "":
-            self._search_levels = int(float(option))
-        option = self._manager.get_option("optimize-search-width")
-        if option != "":
-            self._search_width = int(float(option))
-        option = self._manager.get_option("reference-model")
-        if option != "":
-            self._ref_model = option
-        option = self._manager.get_option("search-direction")
-        if option != "":
-            self.search_dir = option
+        action = self._manager.get_option("action")
+        if action != "":
+            self._action = Action(action)
+        search_levels = self._manager.get_option("search-levels")
+        if search_levels != "":
+            self._search_levels = int(float(search_levels))
+        search_width = self._manager.get_option("optimize-search-width")
+        if search_width != "":
+            self._search_width = int(float(search_width))
+        ref_model = self._manager.get_option("reference-model")
+        if ref_model != "":
+            self._ref_model = ref_model
+        search_dir = self._manager.get_option("search-direction")
+        if search_dir != "":
+            self.search_dir = search_dir
         models = self._manager.get_option_list("short-model")
         # for search, only one specified model allowed
         if len(models) > 0:
@@ -955,7 +968,7 @@ class OCUtils:
             if self.search_dir == SearchDirection.DOWN
             else self._manager.bottom_ref_model
         )
-        start.level = 0
+        start.level = 0  # Unused?
         self._manager.compute_l2_statistics(start)
         self._manager.compute_dependent_statistics(start)
         self._report.add_model(start)

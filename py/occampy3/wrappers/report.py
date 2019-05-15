@@ -50,7 +50,7 @@ class Report:
     def set_separator(self, separator: SeparatorType) -> None:
         self._ref.setSeparator(separator.value)
 
-    separator = property(None, set_separator)
+    separator = property(fset=set_separator)
 
     def add_model(self, model: Model) -> None:
         self._ref.addModel(model.ref)
@@ -58,7 +58,7 @@ class Report:
     def set_default_fit_model(self, model: Model) -> None:
         self._ref.setDefaultFitModel(model.ref)
 
-    default_fit_model = property(None, set_default_fit_model)
+    default_fit_model = property(fset=set_default_fit_model)
 
     def print_conditional_dv(self, model: Model, calc_expected_dv: bool, classifier_target: str) -> None:
         self._ref.printConditional_DV(
