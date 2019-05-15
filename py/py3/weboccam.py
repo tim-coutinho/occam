@@ -22,41 +22,28 @@ from common import *
 from jobcontrol import JobControl
 from ocutils import OCUtils, Action
 from OpagCGI import OpagCGI
-from wrappers.manager import SearchFilter
 from wrappers.report import ReportSortName, SortDirection
 
 cgitb.enable(display=1)
 VERSION = "3.4.0"
 stdout_save = None
-# TODO: eliminate the need for this kludgy definition.
-false = 0
-true = 1
 
 # TODO: check that the 'datadir' directory exists.
 # This requires a manual installation step.
 # If it does not exist with correct permissions, OCCAM will not run.
 datadir = "data"
-
 global_ocInstance = None
+csvname = ""
 
 
-def apply_if(predicate, func, val):
-    return func(val) if predicate else val
-
-
-def get_data_file_name(form_fields, trim=false, key='datafilename'):
+def get_data_file_name(form_fields, trim=False, key='datafilename'):
     """
     Get the original name of the data file.
     * form_fields:   the form data from the user
     * trim:         trim the extension from the filename.
     """
-    return '_'.join(
-        apply_if(
-            trim,
-            lambda d: os.path.splitext(d)[0],
-            os.path.split(form_fields[key])[1],
-        ).split()
-    )
+    file_name = os.path.split(form_fields[key])[1]
+    return '_'.join(os.path.splitext(file_name)[0] if trim else file_name)
 
 
 def use_gfx(form_fields):
@@ -67,19 +54,16 @@ def use_gfx(form_fields):
     )
 
 
-csvname = ""
-
-
 def print_headers(form_fields, text_format):
     if text_format:
         global csvname
-        origcsvname = f"{get_data_file_name(form_fields, true)}.csv"
+        origcsvname = f"{get_data_file_name(form_fields, True)}.csv"
         csvname = get_unique_filename(f"data/{origcsvname}")
         if use_gfx(form_fields):
             # REDIRECT OUTPUT FOR NOW (it will be printed in output_zipfile())
             print("Content-type: application/octet-stream")
             print(
-                f"Content-disposition: attachment; filename={get_data_file_name(form_fields, true)}.zip\n"
+                f"Content-disposition: attachment; filename={get_data_file_name(form_fields, True)}.zip\n"
             )
             sys.stdout.flush()
 
@@ -177,7 +161,7 @@ def output_to_zip(oc):
     global csvname
 
     # Make an empty zip file
-    zipname = f"data/{get_data_file_name(form_fields, true)}.zip"
+    zipname = f"data/{get_data_file_name(form_fields, True)}.zip"
     z = zipfile.ZipFile(zipname, "w")
 
     sys.stdout.flush()
@@ -222,7 +206,7 @@ def output_to_zip(oc):
     sys.stdout = os.fdopen(stdout_save, 'w')
 
     # Write the CSV to the ZIP
-    z.write(csvname, f"{get_data_file_name(form_fields, true)}.csv")
+    z.write(csvname, f"{get_data_file_name(form_fields, True)}.csv")
     z.close()
 
     # print out the zipfile
@@ -1298,7 +1282,7 @@ def start_batch(form_fields):
         datadir, get_data_file_name(form_fields, true) + '.ctl'
     )
     ctlfilename = get_unique_filename(ctlfilename)
-    csvname = get_data_file_name(form_fields, true) + '.csv'
+    csvname = get_data_file_name(form_fields, True) + '.csv'
     datafilename = get_data_file_name(form_fields)
     toaddress = form_fields["batch_output"].lower()
     email_subject = form_fields["email_subject"]
