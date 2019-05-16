@@ -62,10 +62,10 @@ class OpagCGI:
         if template:
             self.set_template(template)
 
-    def set_template(self, template: str) -> None:
-        self.template = template
-        if not os.path.exists(self.template):
-            raise OpagMissingPrecondition(f"{self.template} does not exist")
+    def set_template(self, template_file: str) -> None:
+        self.template_file = template_file
+        if not os.path.exists(self.template_file):
+            raise OpagMissingPrecondition(f"{self.template_file} does not exist")
 
     template = property(fset=set_template)
 
@@ -76,11 +76,11 @@ class OpagCGI:
         """
         if not isinstance(dict_, dict):
             raise TypeError("Second argument must be a dictionary")
-        if not self.template:
+        if not self.template_file:
             raise OpagMissingPrecondition("Template path is not set")
         # Open the file if its not already open. If it is, seek to the
         # beginning of the file.
-        with open(self.template) as f:
+        with open(self.template_file) as f:
             # Instantiate a new bound method to do the replacement.
             replacer = Replacer(dict_).replace
             # Read in the entire template into memory. I guess we'd better keep

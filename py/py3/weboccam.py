@@ -241,7 +241,7 @@ def print_form(form_fields):
 
         cached = form_fields.get("cached")
 
-        file = f"{'cached_' if cached == "true" else ''}data.template.html"
+        file = f"{'cached_' if cached == 'true' else ''}data.template.html"
         template.out(form_fields, file)
         template.out(form_fields, f"{action}.template.html")
         template.out(form_fields, "output.template.html")
