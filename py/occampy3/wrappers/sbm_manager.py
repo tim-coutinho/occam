@@ -15,8 +15,8 @@ class SBMManager(Manager):
         """
         Manager.__init__(self, ref=(ref or SBMManager_cpp()))
 
-    def make_model(self, model_type: str, make_project: bool) -> Model:
-        return Model(self._ref.makeSbModel(model_type, make_project))
+    def make_model(self, model_name: str, make_project: bool) -> Model:
+        return Model(self._ref.makeSbModel(model_name, make_project))
 
     @property
     def test_sample_size(self) -> float:

@@ -36,8 +36,8 @@ class VBMManager(Manager):
     def use_inverse_notation(self, truth_value: bool) -> None:
         self._ref.setUseInverseNotation(truth_value)
 
-    def make_model(self, model_type: str, make_project: bool) -> Model:
-        return Model(self._ref.makeModel(model_type, make_project))
+    def make_model(self, model_name: str, make_project: bool) -> Model:
+        return Model(self._ref.makeModel(model_name, make_project))
 
     def set_ddf_method(self, ddf_method: int) -> None:
         self._ref.setDDFMethod(ddf_method)

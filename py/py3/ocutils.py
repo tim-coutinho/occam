@@ -46,7 +46,7 @@ class OCUtils:
         self._calc_expected_dv = False
         self._data_file = ""
         self._ddf_method = 0
-        self._default_fit_model = ""
+        self._default_fit_model_name = ""
         self._fit_classifier_target = ""
         self._fit_models = []
         self._full_var_names = False
@@ -203,8 +203,8 @@ class OCUtils:
     def set_calc_expected_dv(self, calc_expected_dv: int) -> None:
         self._calc_expected_dv = calc_expected_dv
 
-    def set_default_fit_model(self, model: int) -> None:
-        self._default_fit_model = model
+    def set_default_fit_model_name(self, model: str) -> None:
+        self._default_fit_model_name = model
 
     def set_no_ipf(self, state: int) -> None:
         self._no_ipf = state
@@ -718,14 +718,14 @@ class OCUtils:
 
             self.do_all_computations(model)
 
-            if self._default_fit_model != "":
+            if self._default_fit_model_name != "":
                 try:
                     default_model = self._manager.make_model(
-                        model_name=self._default_fit_model, make_project=True
+                        model_name=self._default_fit_model_name, make_project=True
                     )
                 except Exception:
                     print(
-                        f"\nERROR: Unable to create model {self._default_fit_model}"
+                        f"\nERROR: Unable to create model {self._default_fit_model_name}"
                     )
                     sys.exit(0)
                 self._report.default_fit_model = default_model
@@ -828,15 +828,15 @@ class OCUtils:
             self._manager.ref_model = self._ref_model
             model = self._manager.make_model(model_name, True)
             self.do_all_computations(model)
-            if self._default_fit_model != "":
+            if self._default_fit_model_name != "":
                 try:
                     default_model = self._manager.make_model(
-                        self._default_fit_model, True
+                        self._default_fit_model_name, True
                     )
                 except Exception:
                     print(
                         "\nERROR: Unable to create model "
-                        + self._default_fit_model
+                        + self._default_fit_model_name
                     )
                     sys.exit(0)
                 self._report.default_fit_model = default_model

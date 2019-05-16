@@ -31,7 +31,7 @@ oc.set_action(Action.FIT)
 oc.set_report_separator(SeparatorType.SPACE)
 oc.set_skip_nominal(1)
 oc.set_ddf_method(1)
-# oc.set_default_fit_model("IV:CD")
+# oc.set_default_fit_model_name("IV:CD")
 
 t2 = time.time()
 oc.do_action(1)
