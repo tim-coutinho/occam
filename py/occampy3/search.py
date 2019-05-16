@@ -11,16 +11,21 @@ class Search:
 
     def __init__(self, manager, search_dir, search_filter, report):
         self._manger = manager
-        self.search_dir = search_dir
-        self._search_filter = search_filter
-        self.report = report
-        self._ref_model
-        self._use_inverse_notation
-        self._values_are_functions
-        self._alpha_threshold
-        self._bp_statistics
-        self._percent_correct
-        self._next_id
+        self.search_dir = SearchDirection.DOWN
+        self._search_filter = SearchFilter.LOOPLESS
+        self.report = self._manager.report
+        self._start_model = ModelType.DEFUALT
+        self._ref_model = ModelType.DEFAULT
+        self._use_inverse_notation = False
+        self._values_are_functions = False
+        self._alpha_threshold = 0.05
+        self._bp_statistics = 0
+        self._percent_correct = 0
+        self._next_id = 0
+        self._hide_intermediate_output = False
+        self._total_gen = 0
+        self._total_kept = 0
+        self._search_width = 3
 
 
     def execute(self):
@@ -46,10 +51,11 @@ class Search:
             self._start_model = ModelType.DEFAULT
         if self.search_dir == SearchDirection.DEFAULT:
             self.search_dir = SearchDirection.UP
+
         if (
             self._search_filter == SearchFilter.CHAIN or self._start_model == ModelType.DEFAULT
         ) and self.search_dir == SearchDirection.DOWN:
-            self._start_model = ModelType.printOptions
+            self._start_model = ModelType.TOP
         elif (
             self._search_filter == SearchFilter.CHAIN or self._start_model == ModelType.DEFAULT
         ) and self.search_dir == SearchDirection.UP:
@@ -179,3 +185,65 @@ class Search:
             for item in new_models_heap:
                 self._manager.delete_model_from_cache(item[1])
         return best_models
+
+    def print_option(self, label: str, value: str) -> None:
+        # if self._HTMLFormat:
+        #     print(f"<tr><td>{label}</td><td>{value}</td></tr>")
+        # else:
+            print(f"{label},{value}")
+
+    def print_options(self, r_type: int) -> None:
+        # if self._HTMLFormat:
+        #     print("<br><table border=0 cellpadding=0 cellspacing=0>")
+        self._manager.print_options(self._HTMLFormat, self._skip_nominal)
+        self.print_option("Input data file", self._data_file)
+
+        if self._fit_classifier_target != "":
+            self.print_option(
+                "Default ('negative') state for confusion matrices",
+                self._fit_classifier_target,
+            )
+        if r_type == 1:
+            self.print_option("Starting model", self.start_model)
+            self.print_option("Search direction", self.search_dir)
+            self.print_option("Ref model", self._ref_model)
+            self.print_option("Models to consider", self._search_filter)
+            self.print_option("Search width", self._search_width)
+            self.print_option("Search levels", self._search_levels)
+            self.print_option("Search sort by", self.sort_name)
+            self.print_option("Search preference", self._search_sort_dir)
+            self.print_option("Report sort by", self._report_sort_name)
+            self.print_option("Report preference", self._sort_dir.value)
+
+        if r_type == 0:
+            self.print_option(
+                "Generate hypergraph images",
+                "Y" if self._generate_graph else "N",
+            )
+            self.print_option(
+                "Generate Gephi files", "Y" if self._generate_gephi else "N"
+            )
+
+        if self._generate_graph:
+            self.print_option(
+                "Hypergraph layout style", str(self._layout_style)
+            )
+            self.print_option("Hypergraph image width", str(self._graph_width))
+            self.print_option(
+                "Hypergraph image height", str(self._graph_height)
+            )
+            self.print_option(
+                "Hypergraph font size", str(self._graph_font_size)
+            )
+            self.print_option(
+                "Hypergraph node size", str(self._graph_node_size)
+            )
+
+        if self._generate_gephi or self._generate_graph:
+            self.print_option(
+                f"Hide {'IV' if self.is_directed else 'IVI'} components in hypergraph",
+                "Y" if self._hide_isolated else "N",
+            )
+
+        # self.newl('</table>')
+        sys.stdout.flush()
