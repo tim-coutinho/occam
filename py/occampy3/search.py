@@ -1,15 +1,26 @@
 from wrappers.vbm_manager import VBMManager
+from wrappers.sbm_manager import SBMManager
 from wrappers.manager import SearchDirection, SearchFilter, SearchType
-from wrappers.model import ModelType
+from wrappers.model import Model, ModelType
 from typing import Optional, Sequence
 import sys
+import heapq
+import time
 
 class Search:
 
-    def __init__(self, manager, search_dir, ):
+    def __init__(self, manager, search_dir, search_filter, report):
         self._manger = manager
         self.search_dir = search_dir
         self._search_filter = search_filter
+        self.report = report
+        self._ref_model
+        self._use_inverse_notation
+        self._values_are_functions
+        self._alpha_threshold
+        self._bp_statistics
+        self._percent_correct
+        self._next_id
 
 
     def execute(self):
@@ -19,20 +30,16 @@ class Search:
                 if self._search_filter == SearchFilter.DISJOINT:
                     pass
                 elif self._search_filter == SearchFilter.CHAIN:
-                    print(
-                        'ERROR: Directed Down Chain Search not yet implemented.'
-                    )
+                    print('ERROR: Directed Down Chain Search not yet implemented.')
                     raise sys.exit()
         else:
-            if self.search_dir == "up":
+            if self.search_dir == SearchDirection.UP:
                 pass
             else:
                 if self._search_filter == SearchFilter.DISJOINT:
                     pass
                 elif self._search_filter == SearchFilter.CHAIN:
-                    print(
-                        'ERROR: Neutral Down Chain Search not yet implemented.'
-                    )
+                    print('ERROR: Neutral Down Chain Search not yet implemented.')
                     raise sys.exit()
         #Shared for SB and VB
         if self._start_model == "":
@@ -53,7 +60,7 @@ class Search:
             start = self._manager.get_bottom_ref_model()
         else:
             start = self._manager.make_model(self._start_model, True)
-        self.set_ref_model(self._ref_model)
+        self._manager.set_ref_model(self._ref_model)
         #If manager type is VB
         self._manager.use_inverse_notation(self._use_inverse_notation)
         self._manager.values_are_functions(self._values_are_functions)
@@ -87,8 +94,8 @@ class Search:
         except Exception:
             print(f"ERROR: UNDEFINED SEARCH TYPE {self.search_type()}")
             return
-        if self._HTMLFormat:
-            print('<pre>')
+        # if self._HTMLFormat:
+        #     print('<pre>')
         print("Searching levels:")
         start_time = time.time()
         last_time = start_time
@@ -129,7 +136,46 @@ class Search:
             # if the list is empty, stop. Also, only do one step for chain search
             if self._search_filter == SearchFilter.CHAIN or len(old_models) == 0:
                 break
-        if self._HTMLFormat:
-            print('</pre><br>')
-        else:
+        # if self._HTMLFormat:
+        #     print('</pre><br>')
+        # else:
             print()
+
+    def process_level(self,
+                      level: int,
+                      old_models: List[Model],
+                      clear_cache_flag: bool) -> List[Model]:
+        # start a new heap
+        new_models_heap = []
+        full_count = 0
+        for model in old_models:
+            full_count += self.process_model(level, new_models_heap, model)
+        # if search_width < heapsize, pop off search_width and add to best_models
+        best_models = []
+        while len(new_models_heap) > 0:
+            # make sure that we're adding unique models to the list (mostly for state-based)
+            key, candidate = heapq.heappop(new_models_heap)
+            # if len(best_models) < self._search_width:  # or key[0] == last_key[0]:      # comparing keys allows us to select more than <width> models,
+            if len(best_models) < self._search_width and not any(
+                {n == candidate for n in best_models}
+            ):  # in the case of ties
+                best_models.append(candidate)
+            else:
+                break
+        trunc_count = len(best_models)
+        self._total_gen = full_count + self._total_gen
+        self._total_kept = trunc_count + self._total_kept
+        mem_used = self._manager.mem_usage
+        if not self._hide_intermediate_output:
+            print(
+                f'{full_count} new models, {trunc_count} kept; '
+                f'{self._total_gen + 1} total models, '
+                f'{self._total_kept + 1} total kept; '
+                f'{mem_used / 1024} kb memory used; ',
+                end=' ',
+            )
+        sys.stdout.flush()
+        if clear_cache_flag:
+            for item in new_models_heap:
+                self._manager.delete_model_from_cache(item[1])
+        return best_models
