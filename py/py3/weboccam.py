@@ -14,7 +14,8 @@ import time
 import traceback
 import zipfile
 
-sys.path.insert(0, "../occampy3")
+sys.path.insert(0, os.path.abspath("../occampy3"))
+sys.path.insert(0, os.path.abspath("../occampy3/wrappers"))
 
 import distanceFunctions
 import ocGraph

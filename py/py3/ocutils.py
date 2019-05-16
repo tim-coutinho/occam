@@ -13,7 +13,7 @@ from enum import Enum
 from typing import Dict, List, Sequence, Tuple, Union
 
 import ocGraph
-from model import ModelType
+from model import Model, ModelType
 from report import ReportSortName, SeparatorType, SortDirection
 from sbm_manager import SBMManager
 from vbm_manager import VBMManager
