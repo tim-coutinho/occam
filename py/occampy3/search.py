@@ -108,8 +108,6 @@ class Search:
         except Exception:
             print(f"ERROR: UNDEFINED SEARCH TYPE {self.search_type()}")
             return
-        # if self._HTMLFormat:
-        #     print('<pre>')
         print("Searching levels:")
         start_time = time.time()
         last_time = start_time
@@ -152,9 +150,6 @@ class Search:
             # if the list is empty, stop. Also, only do one step for chain search
             if self._search_filter == SearchFilter.CHAIN or len(old_models) == 0:
                 break
-        # if self._HTMLFormat:
-        #     print('</pre><br>')
-        # else:
             print()
 
     def process_level(self,
@@ -197,14 +192,9 @@ class Search:
         return best_models
 
     def print_option(self, label: str, value: str) -> None:
-        # if self._HTMLFormat:
-        #     print(f"<tr><td>{label}</td><td>{value}</td></tr>")
-        # else:
             print(f"{label},{value}")
 
     def print_options(self, r_type: int) -> None:
-        # if self._HTMLFormat:
-        #     print("<br><table border=0 cellpadding=0 cellspacing=0>")
         self._manager.print_options(self._HTMLFormat, self._skip_nominal)
         self.print_option("Input data file", self._data_file)
 
@@ -213,6 +203,7 @@ class Search:
                 "Default ('negative') state for confusion matrices",
                 self._fit_classifier_target,
             )
+
         if r_type == 1:
             self.print_option("Starting model", self.start_model)
             self.print_option("Search direction", self.search_dir)
@@ -254,6 +245,4 @@ class Search:
                 f"Hide {'IV' if self.is_directed else 'IVI'} components in hypergraph",
                 "Y" if self._hide_isolated else "N",
             )
-
-        # self.newl('</table>')
         sys.stdout.flush()
