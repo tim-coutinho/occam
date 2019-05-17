@@ -1669,6 +1669,7 @@ DefinePyFunction(Model, new) {
 
 //getters - Capstone Team A
 
+/*
 DefinePyFunction(Report, getRelation){
     Report* report = ObjRef(self, Report);
     PRelation *list = ObjNew(Relation);
@@ -1693,6 +1694,7 @@ DefinePyFunction(Report, getModel){
     Py_INCREF(list);
     return list;
 }
+*/
 
 DefinePyFunction(Report, getManager){
     Report* report = ObjRef(self, Report);

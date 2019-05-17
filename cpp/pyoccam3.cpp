@@ -1653,6 +1653,17 @@ PyTypeObject TModel = {
 /****** Report ******/
 /************************/
 
+//Capstone 2019 - Huy Yang
+DefinePyFunction(Report, getManager){
+    Report* report = ObjRef(self, Report);
+    PManager *list = ObjNew(Manager);
+    list->obj = report -> getManager();
+
+    Py_INCREF(list);
+
+    return (PyObject*) list;
+}
+
 // Object* get(char *name)
 DefinePyFunction(Report, get) {
     Report *report = ObjRef(self, Report);

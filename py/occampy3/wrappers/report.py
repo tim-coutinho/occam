@@ -61,3 +61,6 @@ class Report:
     def print_report(self) -> None:
         self._ref.printReport()
 
+    def get_manager(self):
+        self._ref.getManager()
+
