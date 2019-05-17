@@ -9,8 +9,13 @@ import time
 
 class Search:
 
-    def __init__(self, manager, search_dir, search_filter, report):
-        self._manger = manager
+    def __init__(self, opt: str):
+        if opt == "VB":
+            self._manger = VBManager()
+            self._manager_type = "VB"
+        else:
+            self._manger = SBMManager()
+            self._manger_type = "SB"
         self.search_dir = SearchDirection.DOWN
         self._search_filter = SearchFilter.LOOPLESS
         self.report = self._manager.report
@@ -30,22 +35,23 @@ class Search:
 
     def execute(self):
         #If manager type is SB
-        if self._manager.is_directed():
-            if self.search_dir == SearchDirection.DOWN:
-                if self._search_filter == SearchFilter.DISJOINT:
-                    pass
-                elif self._search_filter == SearchFilter.CHAIN:
-                    print('ERROR: Directed Down Chain Search not yet implemented.')
-                    raise sys.exit()
-        else:
-            if self.search_dir == SearchDirection.UP:
-                pass
+        if self._manger_type == "SB"
+            if self._manager.is_directed():
+                if self.search_dir == SearchDirection.DOWN:
+                    if self._search_filter == SearchFilter.DISJOINT:
+                        pass
+                    elif self._search_filter == SearchFilter.CHAIN:
+                        print('ERROR: Directed Down Chain Search not yet implemented.')
+                        raise sys.exit()
             else:
-                if self._search_filter == SearchFilter.DISJOINT:
+                if self.search_dir == SearchDirection.UP:
                     pass
-                elif self._search_filter == SearchFilter.CHAIN:
-                    print('ERROR: Neutral Down Chain Search not yet implemented.')
-                    raise sys.exit()
+                else:
+                    if self._search_filter == SearchFilter.DISJOINT:
+                        pass
+                    elif self._search_filter == SearchFilter.CHAIN:
+                        print('ERROR: Neutral Down Chain Search not yet implemented.')
+                        raise sys.exit()
         #Shared for SB and VB
         if self._start_model == "":
             self._start_model = ModelType.DEFAULT
@@ -68,9 +74,10 @@ class Search:
             start = self._manager.make_model(self._start_model, True)
         self._manager.set_ref_model(self._ref_model)
         #If manager type is VB
-        self._manager.use_inverse_notation(self._use_inverse_notation)
-        self._manager.values_are_functions(self._values_are_functions)
-        self._manager.set_alpha_threshold(self._alpha_threshold)
+        if self._manager_type == "VB"
+            self._manager.use_inverse_notation(self._use_inverse_notation)
+            self._manager.values_are_functions(self._values_are_functions)
+            self._manager.set_alpha_threshold(self._alpha_threshold)
         #Shared for SB and VB
         if self.search_dir == SearchDirection.DOWN:
             self._manager.set_search_direction(SearchDirection.DOWN)
@@ -82,8 +89,9 @@ class Search:
         self._manager.compute_l2_statistics(start)
         self._manager.compute_dependent_statistics(start)
         #If manager type is VB
-        if self._bp_statistics:
-            self._manager.compute_bp_statistics(start)
+        if self._manager_type == "VB"
+            if self._bp_statistics:
+                self._manager.compute_bp_statistics(start)
         #Shared for SB and VB
         if self._percent_correct and self._manager.is_directed():
             self._manager.compute_percent_correct(start)
@@ -118,7 +126,8 @@ class Search:
                 f'{current_time - last_time:.1f} seconds, {current_time - start_time:.1f} total'
             )
             #If manager type is VB
-            sys.stdout.flush()
+            if self._manger_type == "VB"
+                sys.stdout.flush()
             #Shared for VB and SB
             last_time = current_time
             for model in new_models:
@@ -135,7 +144,8 @@ class Search:
                 self._next_id += 1
                 model.set_id(self._next_id)
                 #If manager type is SB
-                model.deleteFitTable()  #recover fit table memory
+                if self._manger_type == "SB"
+                    model.deleteFitTable()  #recover fit table memory
                 #Shared for VB and SB
                 self._report.add_model(model)
             old_models = new_models
