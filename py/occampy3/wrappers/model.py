@@ -19,7 +19,6 @@ class Model:
         """
         # Create new reference if one not given
         self.ref = ref
-        self._id = 0
 
     def __lt__(self, other: 'Model') -> bool:
         return self.name < other.name
@@ -36,9 +35,9 @@ class Model:
         return self.ref.getPrintName()
 
     def set_id(self, id_: int) -> None:
-        self._id = id_
+        self.ref.setID(id_)
 
-    id_ = property(None, set_id)
+    id_ = property(fset=set_id)
 
     def make_fit_table(self, model) -> None:
         self.ref.makeFitTable(model)
@@ -60,7 +59,7 @@ class Model:
     def set_progenitor(self, progenitor: 'Model') -> None:
         self.ref.setProgenitor(progenitor.ref)
 
-    progenitor = property(None, set_progenitor)
+    progenitor = property(fset=set_progenitor)
 
     def get_attribute_value(self, attribute: str) -> Union[str, float]:
         return self.ref.get(attribute)
