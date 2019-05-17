@@ -168,46 +168,31 @@ class Fit:
 
         if not have_ivs:
             if not varset.issubset(modset):
-                if self._HTMLFormat:
-                    print("<br>")
-                raise Exception(
-                    f"\nERROR: Not all declared variables are present in the model, '{model_name}'."
-                )
-                if self._HTMLFormat:
-                    print("<br>")
+                err_msg = f"ERROR: Not all declared variables are present in the model, '{model_name}'."
+
                 if saw_maybe_wrong_iv:
-                    raise Exception(
-                        f"\n_did you mean '{'IV' if is_directed else 'IVI'}' instead of '{'IVI' if is_directed else 'IV'}"
-                    )
+                    err_msg += f"\n_did you mean '{'IV' if is_directed else 'IVI'}' instead of '{'IVI' if is_directed else 'IV'}"
                 else:
-                    raise Exception(
-                        f"\n Did you forget the {'IV' if is_directed else 'IVI'} component?"
-                    )
-                if self._HTMLFormat:
-                    print("<br>")
-                raise Exception("\n Not in model: ")
-                raise Exception(", ".join([f"'{i}'" for i in varset.difference(modset)]))
-                sys.exit(1)
+                    err_msg += f"\n Did you forget the {'IV' if is_directed else 'IVI'} component?"
+
+                err_msg += "\n Not in model: "
+                err_msg += ", ".join([f"'{i}'" for i in varset.difference(modset)])
+
+                raise Exception(err_msg)
 
         # all variables in model are in varlist
         if not modset.issubset(varset):
-            if self._HTMLFormat:
-                print("<br>")
-            raise Exception(
-                f"\nERROR: Not all variables in the model '{model_name}' are declared in the variable list."
-            )
-            if self._HTMLFormat:
-                print("<br>")
+            err_msg = f"ERROR: Not all variables in the model '{model_name}' are declared in the variable list."
+
             diffset = modset.difference(varset)
             if saw_maybe_wrong_iv or diffset == {"I", "V"}:
-                raise Exception(
-                    f"\n_did you mean '{'IV' if is_directed else 'IVI'}' instead of '{'IVI' if is_directed else 'IV'}'?"
-                )
-            else:
-                raise Exception("\n Not declared: ")
-                raise Exception(", ".join([f"'{i}'" for i in diffset]))
+                err_msg += f"\n_did you mean '{'IV' if is_directed else 'IVI'}' instead of '{'IVI' if is_directed else 'IV'}'?"
 
-            sys.exit(1)
+            else:
+                err_msg += "\n Not declared: "
+                err_msg += ", ".join([f"'{i}'" for i in diffset])
+
+            raise Exception(err_msg)
 
         # dv must be in all components (except IV) if directed
         if is_directed:
@@ -220,7 +205,6 @@ class Fit:
                         f"\nERROR: In the model '{model_name}', model component '{''.join(rel)}'"
                         f"is missing the DV, '{dv}'."
                     )
-                    sys.exit(1)
 
     def _print_option(self, label, value):
         if self._HTMLFormat:
