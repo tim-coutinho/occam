@@ -8,13 +8,16 @@
 import resource
 import sys
 import time
+import os
 
 sys.path.insert(0, "./wrappers")
+sys.path.insert(0, os.path.abspath("../occampy3"))
+sys.path.insert(0, os.path.abspath("../occampy3/wrappers"))
 
 from ocutils import OCUtils, Action
 from wrappers.manager import SearchFilter
 from wrappers.model import ModelType
-from wrappers.report import SortDirection, ReportSortName
+from wrappers.report import SeparatorType, SortDirection, ReportSortName
 
 resource.setrlimit(resource.RLIMIT_CORE, [360000, 360000])
 # sys.path.append("/www")
@@ -59,7 +62,7 @@ def main():
     # To force a particular attribute to be printed as an integer, append "$I" to the name (e.g., Level$I)
 
     # Set separator between report fields.  [1=tab, 2=comma, 3=space fill, 4=HTML]
-    util.set_report_separator(3)
+    util.set_report_separator(SeparatorType.SPACE)
     util.set_skip_nominal(1)
 
     # Set the sorting direction for reporting.

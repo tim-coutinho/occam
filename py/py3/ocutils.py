@@ -145,8 +145,8 @@ class OCUtils:
             ddf_method = 0
         self._ddf_method = ddf_method
 
-    def set_sort_dir(self, sort_dir: Union[SortDirection, str]) -> None:
-        self._sort_dir = SortDirection(sort_dir)
+    def set_sort_dir(self, sort_dir: SortDirection) -> None:
+        self._sort_dir = sort_dir
 
     def set_search_sort_dir(self, sort_dir: Union[SortDirection, str]) -> None:
         if sort_dir == "":
@@ -185,7 +185,7 @@ class OCUtils:
 
     def set_start_model(self, start_model: Union[ModelType, str]) -> None:
         if start_model not in [*ModelType, ""]:
-            self.check_model_name(start_model)
+            self.check_model_name(start_model.name)
         self.start_model = start_model
 
     def set_fit_model(self, fit_model: str) -> None:

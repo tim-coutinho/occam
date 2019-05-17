@@ -154,7 +154,7 @@ static void setStandardOptions(Options *opts) {
     def = opts->addOptionName("limit", "l", "Show only COUNT best reports");
     opts->addOptionValue(def, "#", "");
     def = opts->addOptionName("alpha-threshold", "", "Set alpha threshold for significance tests");
-    opts->addOptionValue(def, "#", ""); 
+    opts->addOptionValue(def, "#", "");
     def = opts->addOptionName("title", "T", "Set title string");
     opts->addOptionValue(def, "$", "");
     def = opts->addOptionName("res", "r", "Residual plot type");

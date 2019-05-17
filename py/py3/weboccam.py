@@ -339,8 +339,10 @@ def prepare_cached_data(form_fields):
 
     def unpack_to_string(fn, data):
         rn = unzip_data_file(get_data_file_alloc_by_name(fn, data))
-        with open(rn) as f:
-            data = f.read()
+        f = open(rn)
+        data = f.read()
+        # with open(rn) as f:
+        #     data = f.read()
         return data, rn
 
     decls, decls_rn = unpack_to_string(decls_file_name, decls_file)
@@ -649,7 +651,7 @@ def action_search(form_fields):
     else:
         oc.set_report_separator(OCUtils.HTML_FORMAT)
 
-    oc.set_sort_dir(form_fields.get("sortdir", ""))
+    oc.set_sort_dir(SortDirection(form_fields.get("sortdir", "")))
     levels = form_fields.get("searchlevels")
     if levels and levels > 0:
         oc.set_search_levels(levels)
@@ -1112,7 +1114,7 @@ def action_sb_search(form_fields):
         oc.set_report_separator(OCUtils.COMMA_SEP)
     else:
         oc.set_report_separator(OCUtils.HTML_FORMAT)
-    oc.set_sort_dir(form_fields.get("sortdir", ""))
+    oc.set_sort_dir(SortDirection(form_fields.get("sortdir", "")))
     levels = form_fields.get("searchlevels")
     if levels and levels > 0:
         oc.set_search_levels(levels)
