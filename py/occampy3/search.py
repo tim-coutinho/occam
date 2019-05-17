@@ -1,11 +1,15 @@
+import sys
+import heapq
+import time
+sys.path.insert(0, "./wrappers")
+
 from wrappers.vbm_manager import VBMManager
 from wrappers.sbm_manager import SBMManager
 from wrappers.manager import SearchDirection, SearchFilter, SearchType
 from wrappers.model import Model, ModelType
 from typing import Optional, Sequence
-import sys
-import heapq
-import time
+from typing import List
+
 
 class Search:
 
@@ -35,7 +39,7 @@ class Search:
 
     def execute(self):
         #If manager type is SB
-        if self._manger_type == "SB"
+        if self._manger_type == "SB":
             if self._manager.is_directed():
                 if self.search_dir == SearchDirection.DOWN:
                     if self._search_filter == SearchFilter.DISJOINT:
@@ -74,7 +78,7 @@ class Search:
             start = self._manager.make_model(self._start_model, True)
         self._manager.set_ref_model(self._ref_model)
         #If manager type is VB
-        if self._manager_type == "VB"
+        if self._manager_type == "VB":
             self._manager.use_inverse_notation(self._use_inverse_notation)
             self._manager.values_are_functions(self._values_are_functions)
             self._manager.set_alpha_threshold(self._alpha_threshold)
@@ -89,7 +93,7 @@ class Search:
         self._manager.compute_l2_statistics(start)
         self._manager.compute_dependent_statistics(start)
         #If manager type is VB
-        if self._manager_type == "VB"
+        if self._manager_type == "VB":
             if self._bp_statistics:
                 self._manager.compute_bp_statistics(start)
         #Shared for SB and VB
@@ -124,7 +128,7 @@ class Search:
                 f'{current_time - last_time:.1f} seconds, {current_time - start_time:.1f} total'
             )
             #If manager type is VB
-            if self._manger_type == "VB"
+            if self._manger_type == "VB":
                 sys.stdout.flush()
             #Shared for VB and SB
             last_time = current_time
@@ -142,7 +146,7 @@ class Search:
                 self._next_id += 1
                 model.set_id(self._next_id)
                 #If manager type is SB
-                if self._manger_type == "SB"
+                if self._manger_type == "SB":
                     model.deleteFitTable()  #recover fit table memory
                 #Shared for VB and SB
                 self._report.add_model(model)
