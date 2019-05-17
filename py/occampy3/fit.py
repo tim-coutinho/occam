@@ -131,42 +131,42 @@ class Fit:
             if not varset.issubset(modset):
                 if self._HTMLFormat:
                     print("<br>")
-                print(
+                raise Exception(
                     f"\nERROR: Not all declared variables are present in the model, '{model_name}'."
                 )
                 if self._HTMLFormat:
                     print("<br>")
                 if saw_maybe_wrong_iv:
-                    print(
+                    raise Exception(
                         f"\n_did you mean '{'IV' if is_directed else 'IVI'}' instead of '{'IVI' if is_directed else 'IV'}"
                     )
                 else:
-                    print(
+                    raise Exception(
                         f"\n Did you forget the {'IV' if is_directed else 'IVI'} component?"
                     )
                 if self._HTMLFormat:
                     print("<br>")
-                print("\n Not in model: ")
-                print(", ".join([f"'{i}'" for i in varset.difference(modset)]))
+                raise Exception("\n Not in model: ")
+                raise Exception(", ".join([f"'{i}'" for i in varset.difference(modset)]))
                 sys.exit(1)
 
         # all variables in model are in varlist
         if not modset.issubset(varset):
             if self._HTMLFormat:
                 print("<br>")
-            print(
+            raise Exception(
                 f"\nERROR: Not all variables in the model '{model_name}' are declared in the variable list."
             )
             if self._HTMLFormat:
                 print("<br>")
             diffset = modset.difference(varset)
             if saw_maybe_wrong_iv or diffset == {"I", "V"}:
-                print(
+                raise Exception(
                     f"\n_did you mean '{'IV' if is_directed else 'IVI'}' instead of '{'IVI' if is_directed else 'IV'}'?"
                 )
             else:
-                print("\n Not declared: ")
-                print(", ".join([f"'{i}'" for i in diffset]))
+                raise Exception("\n Not declared: ")
+                raise Exception(", ".join([f"'{i}'" for i in diffset]))
 
             sys.exit(1)
 
@@ -177,7 +177,7 @@ class Fit:
                 if not (rel == ["IVI"] or rel == ["IV"]) and dv not in rel:
                     if self._HTMLFormat:
                         print("<br>")
-                    print(
+                    raise Exception(
                         f"\nERROR: In the model '{model_name}', model component '{''.join(rel)}'"
                         f"is missing the DV, '{dv}'."
                     )
