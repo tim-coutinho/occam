@@ -33,6 +33,12 @@ class SBSearchType(Enum):
     FULL_DOWN = 'sb-full-down'
 
 
+class SearchFilter(Enum):
+    LOOPLESS = 'loopless'
+    DISJOINT = 'disjoint'
+    CHAIN = 'chain'
+
+
 class Manager:
     """
     Wrapper class for Manager
