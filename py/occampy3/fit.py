@@ -200,68 +200,6 @@ class Fit:
                         f"is missing the DV, '{dv}'."
                     )
 
-    def _print_option(self, label, value):
-        if self._HTMLFormat:
-            print(f"<tr><td>{label}</td><td>{value}</td></tr>")
-        else:
-            print(f"{label},{value}")
-
-    def _print_options(self, r_type):
-        if self._HTMLFormat:
-            print("<br><table border=0 cellpadding=0 cellspacing=0>")
-        self.manager.print_options(self._HTMLFormat, self._skip_nominal)
-
-        if self.fit_classifier_target != "":
-            self._print_option(
-                "Default ('negative') state for confusion matrices",
-                self.fit_classifier_target,
-            )
-        if r_type == 1:
-            self._print_option("Starting model", self._start_model_name)
-            self._print_option("Search direction", self._search_dir)
-            self._print_option("Ref model", self._ref_model)
-            self._print_option("Models to consider", self._search_filter.value)
-            self._print_option("Search width", self._search_width)
-            self._print_option("Search levels", self._search_levels)
-            self._print_option("Search sort by", self._sort_name)
-            self._print_option("Search preference", self._search_sort_dir)
-            self._print_option("Report sort by", self._report_sort_name)
-            self._print_option("Report preference", self._sort_dir.value)
-
-        if r_type == 0:
-            self._print_option(
-                "Generate hypergraph images",
-                "Y" if self.generate_graph else "N",
-            )
-            self._print_option(
-                "Generate Gephi files", "Y" if self.generate_gephi else "N"
-            )
-
-        if self.generate_graph:
-            self._print_option(
-                "Hypergraph layout style", str(self.layout_style)
-            )
-            self._print_option("Hypergraph image width", str(self.graph_width))
-            self._print_option(
-                "Hypergraph image height", str(self.graph_height)
-            )
-            self._print_option(
-                "Hypergraph font size", str(self.graph_font_size)
-            )
-            self._print_option(
-                "Hypergraph node size", str(self.graph_node_size)
-            )
-
-        if self.generate_gephi or self.generate_graph:
-            self._print_option(
-                f"Hide {'IV' if self.manager.is_directed() else 'IVI'} components in hypergraph",
-                "Y" if self.hide_isolated else "N",
-            )
-
-        if self._HTMLFormat:
-            print("</table>")
-        sys.stdout.flush()
-
     def print_graph(self, model_name, only):
         if only and not self.generate_gephi:
             self.generate_graph = True
