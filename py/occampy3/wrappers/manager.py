@@ -71,6 +71,10 @@ class Manager:
     def search_type(self, search_type):
         self._ref.setSearchType(search_type)
 
+    @property
+    def sample_size(self) -> int:
+        return int(self._ref.getSampleSz())
+
     def set(self, **kwargs):
         pass
 
@@ -141,6 +145,12 @@ class Manager:
 
     def compute_incremental_alpha(self, model: Model) -> None:
         self._ref.computeIncrementalAlpha(model.ref)
+
+    def compute_df(self, model: Model) -> float:
+        return self._ref.computeDF(model.ref)
+
+    def compute_h(self, model: Model) -> float:
+        return self._ref.computeH(model.ref)
 
     def make_fit_table(self, model: Model) -> None:
         self._ref.makeFitTable(model.ref)
