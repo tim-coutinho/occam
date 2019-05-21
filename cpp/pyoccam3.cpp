@@ -1917,6 +1917,7 @@ DefinePyFunction(Report, bestModelData) {
 
 
 static struct PyMethodDef Report_methods[] = {
+    PyMethodDef(Report, addManager),
     PyMethodDef(Report, addModel),
     PyMethodDef(Report, bestModelData),
     PyMethodDef(Report, bestModelName),

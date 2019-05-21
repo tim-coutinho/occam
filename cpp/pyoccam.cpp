@@ -1664,50 +1664,6 @@ DefinePyFunction(Model, new) {
 /****** Report ******/
 /************************/
 
-
-
-
-//getters - Capstone Team A
-
-/*
-DefinePyFunction(Report, getRelation){
-    Report* report = ObjRef(self, Report);
-    PRelation *list = ObjNew(Relation);
-    list->obj = report->getRelation();
-
-    Py_INCREF(var_list);
-
-    return (PyObject*) list;
-}
-
-DefinePyFunction(Report, getModel){
-    char *attrName;
-    PyArg_ParseTuple(args, "o", &attrName);
-    const char *value;
-    void *nextp = NULL;
-    PyObject *list = PyList_New(0);
-    //change to object
-    while (ObjRef(self, Report)->getOptionString(attrName, &nextp, &value) && nextp != NULL) {
-        PyObject *valstr = Py_BuildValue("o", value);
-        PyList_Append(list, valstr);
-    }
-    Py_INCREF(list);
-    return list;
-}
-*/
-
-DefinePyFunction(Report, getManager){
-    Report* report = ObjRef(self, Report);
-    PManager *list = ObjNew(Manager);
-    list->obj = report -> getManager();
-
-    Py_INCREF(list);
-
-    return (PyObject*) list;
-}
-
-//getters - Capstone Team A End
-
 // Object* get(char *name)
 DefinePyFunction(Report, get) {
     Report *report = ObjRef(self, Report);      //Creates a reference to a variable of the Python wrapper type
@@ -1974,11 +1930,21 @@ DefinePyFunction(Report, bestModelData) {
 
 
 static struct PyMethodDef Report_methods[] = { 
-        PyMethodDef(Report, getRelation), PyMethodDef(Report, getModel), PyMethodDef(Report, getManager),
-        PyMethodDef(Report, bestModelName), PyMethodDef(Report, bestModelData), PyMethodDef(Report, get), PyMethodDef(Report, addModel),
-        PyMethodDef(Report, setDefaultFitModel), PyMethodDef(Report, setAttributes), PyMethodDef(Report, sort),
-        PyMethodDef(Report, printReport), PyMethodDef(Report, writeReport), PyMethodDef(Report, setSeparator),
-        PyMethodDef(Report, printResiduals), PyMethodDef(Report, printConditional_DV), PyMethodDef(Report, variableList), PyMethodDef(Report, dvName), PyMethodDef(Report, bestModelBIC), { NULL, NULL, 0 } };
+        PyMethodDef(Report, bestModelName), 
+        PyMethodDef(Report, bestModelData), 
+        PyMethodDef(Report, get), 
+        PyMethodDef(Report, addModel),
+        PyMethodDef(Report, setDefaultFitModel), 
+        PyMethodDef(Report, setAttributes), 
+        PyMethodDef(Report, sort),
+        PyMethodDef(Report, printReport), 
+        PyMethodDef(Report, writeReport), 
+        PyMethodDef(Report, setSeparator),
+        PyMethodDef(Report, printResiduals), 
+        PyMethodDef(Report, printConditional_DV), 
+        PyMethodDef(Report, variableList), 
+        PyMethodDef(Report, dvName), 
+        PyMethodDef(Report, bestModelBIC), { NULL, NULL, 0 } };
 /****** Basic Type Operations ******/
 
 /* commented out because it is currently unused
