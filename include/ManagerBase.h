@@ -240,6 +240,11 @@ class ManagerBase {
             return options->getOptionFloat(name, next, nvalue);
         }
 
+        Options* getOptions()
+        {
+            return options;
+        }
+
         void printOptions(bool printHTML = false, bool skipNominal = false);
 
         class Table *getFitTable() {

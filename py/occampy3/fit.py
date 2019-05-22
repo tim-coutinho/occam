@@ -20,7 +20,7 @@ class Fit:
                  ):
 
         self.manager = manager
-        self._skip_nominal = skip_nominal
+        self.skip_nominal = skip_nominal
         self._search_dir = search_dir
         self._start_model_name = start_model_name
         self._fit_model_names = fit_model_names

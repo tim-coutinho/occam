@@ -13,10 +13,12 @@
 #include "VBMManager.h"
 #include "VariableList.h"
 #include "Variable.h"
+#include "Options.h"
 #include <limits>
 #include <unistd.h>
 #include <Python.h>
 
+typedef ocOption Option;
 
 /***** MACROS *****/
 //-- Exit function on error
@@ -71,6 +73,7 @@ DefinePyObject(Relation);
 DefinePyObject(Model);
 DefinePyObject(Report);
 DefinePyObject(Variable);
+DefinePyObject(Option);
 
 DefineIterablePyObject(VariableList)
 
@@ -558,6 +561,27 @@ DefinePyFunction(VBMManager, getOptionList) {
     return list;
 }
 
+DefinePyFunction(VBMManager, getAllOptions) {
+    VBMManager *manager = ObjRef(self, VBMManager);
+    ocOption *option =  manager->getOptions()->getOptions();
+
+    PyObject *option_list = PyList_New(manager->getOptions()->getOptionsCount());
+
+    int i = 0;
+
+    while(option)
+    {
+        POption* p_option = ObjNew(Option);
+        p_option->obj = option;
+        PyList_SetItem(option_list, i, (PyObject*) p_option);
+        i++;
+        option = option->next;
+    }
+
+    Py_INCREF(option_list);
+    return option_list;
+}
+
 // Model *Report()
 DefinePyFunction(VBMManager, Report) {
     PyArg_ParseTuple(args, "");
@@ -719,6 +743,7 @@ static struct PyMethodDef VBMManager_methods[] = {
         PyMethodDef(VBMManager, getMemUsage),
         PyMethodDef(VBMManager, getOption),
         PyMethodDef(VBMManager, getOptionList),
+        PyMethodDef(VBMManager, getAllOptions),
         PyMethodDef(VBMManager, getRefModel),
         PyMethodDef(VBMManager, getSampleSz),
         PyMethodDef(VBMManager, getTopRefModel),
@@ -2291,6 +2316,54 @@ PyTypeObject TVariable = {
     .tp_methods         = Variable_methods,
 };
 
+DefinePyFunction(Option, getName) {
+    Option* option = ObjRef(self, Option);
+    return PyUnicode_FromString(option->def->name);
+}
+
+DefinePyFunction(Option, getValue) {
+    Option* option = ObjRef(self, Option);
+    return PyUnicode_FromString(option->value);
+}
+
+static struct PyMethodDef Option_methods[] =
+{
+    PyMethodDef(Option, getName),
+    PyMethodDef(Option, getValue),
+    { nullptr }
+};
+
+PyTypeObject TOption = {
+    PyVarObject_HEAD_INIT(&PyType_Type, 0)
+    .tp_name            = "Option_cpp",
+    .tp_basicsize       = sizeof(POption),
+    .tp_itemsize        = NULL,
+    .tp_dealloc         = nullptr,
+    .tp_print           = nullptr,
+    .tp_getattr         = nullptr,
+    .tp_setattr         = nullptr,
+    .tp_as_async        = nullptr,
+    .tp_repr            = nullptr,
+    .tp_as_number       = nullptr,
+    .tp_as_sequence     = nullptr,
+    .tp_as_mapping      = nullptr,
+    .tp_hash            = nullptr,
+    .tp_call            = nullptr,
+    .tp_str             = nullptr,
+    .tp_getattro        = nullptr,
+    .tp_setattro        = nullptr,
+    .tp_as_buffer       = nullptr,
+    .tp_flags           = Py_TPFLAGS_DEFAULT,
+    .tp_doc             = nullptr,
+    .tp_traverse        = nullptr,
+    .tp_clear           = nullptr,
+    .tp_richcompare     = nullptr,
+    .tp_weaklistoffset  = NULL,
+    .tp_iter            = nullptr,
+    .tp_iternext        = nullptr,
+    .tp_methods         = Option_methods,
+};
+
 /**************************/
 /****** MODULE LOGIC ******/
 /**************************/
@@ -2340,6 +2413,8 @@ PyMODINIT_FUNC PyInit_occam(void)
     if (PyType_Ready(&TVariableList) < 0)
         return NULL;
     if (PyType_Ready(&TVariable) < 0)
+        return NULL;
+    if (PyType_Ready(&TOption) < 0)
         return NULL;
 
     return m;
