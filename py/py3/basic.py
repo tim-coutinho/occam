@@ -76,11 +76,11 @@ def main():
 
     # Set the start model for search [top, bottom, default, a specific model].
     # Skip this to use the model set in the data file.
-    util.set_start_model(ModelType.DEFAULT)
+    util.set_start_model('default')
     # util.set_start_model("IV:A38Z")
 
     # Set the ref model [top, bottom, default, a specific model].
-    util.set_ref_model(ModelType.DEFAULT)
+    util.set_ref_model('default')
 
     # Set the sorting direction for the search. ["ascending" prefers lower values, "descending" prefers higher]
     util.set_search_sort_dir(SortDirection.DESCENDING)

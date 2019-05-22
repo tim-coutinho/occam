@@ -36,6 +36,8 @@ class VBMManager(Manager):
     def use_inverse_notation(self, truth_value: bool) -> None:
         self._ref.setUseInverseNotation(truth_value)
 
+    inverse_notation = property(fset=use_inverse_notation)
+
     def make_model(self, model_name: str, make_project: bool) -> Model:
         return Model(self._ref.makeModel(model_name, make_project))
 

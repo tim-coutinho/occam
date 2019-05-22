@@ -658,7 +658,7 @@ def action_search(form_fields):
     width = form_fields.get("searchwidth")
     if width and width > 0:
         oc.set_search_width(width)
-    report_sort = form_fields.get("sortreportby", "")
+    report_sort = ReportSortName(form_fields.get("sortreportby", ""))
     search_sort = form_fields.get("sortby", "")
     inverse_flag = form_fields.get("inversenotation")
     if inverse_flag:
@@ -679,7 +679,7 @@ def action_search(form_fields):
         ref_model = oc.start_model
     oc.set_ref_model(ref_model)
     oc.search_dir = form_fields.get("searchdir", "default")
-    oc.set_search_sort_dir(form_fields.get("searchsortdir", ""))
+    oc.set_search_sort_dir(SortDirection(form_fields.get("searchsortdir", 'descending')))
     oc.set_search_filter(form_fields.get("searchtype", "all"))
     oc.set_alpha_threshold(form_fields.get("alpha-threshold", "0.05"))
     oc.set_action("search")
@@ -928,7 +928,7 @@ def action_batch_compare(form_fields):
 
         # Hardcoded settings (for now):
         oc.set_sort_dir(SortDirection.DESCENDING)
-        oc.set_search_sort_dir("descending")  # try to maximize dBIC or dAIC.
+        oc.set_search_sort_dir(SortDirection.DESCENDING)  # try to maximize dBIC or dAIC.
         oc.set_ref_model("bottom")  # Always uses bottom as reference.
 
         # Parameters from the web form
@@ -1121,7 +1121,7 @@ def action_sb_search(form_fields):
     width = form_fields.get("searchwidth")
     if width and width > 0:
         oc.set_search_width(width)
-    report_sort = form_fields.get("sortreportby", "")
+    report_sort = ReportSortName(form_fields.get("sortreportby", ""))
     search_sort = form_fields.get("sortby", "")
     inverse_flag = form_fields.get("inversenotation")
     if inverse_flag:
@@ -1142,7 +1142,7 @@ def action_sb_search(form_fields):
         ref_model = oc.start_model
     oc.set_ref_model(ref_model)
     oc.search_dir = form_fields.get("searchdir", "default")
-    oc.set_search_sort_dir(form_fields.get("searchsortdir", ""))
+    oc.set_search_sort_dir(SortDirection(form_fields.get("searchsortdir", "descending")))
     oc.set_search_filter(form_fields.get("searchtype", "all"))
     oc.set_action("SBsearch")
 

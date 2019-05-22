@@ -13,7 +13,7 @@ from enum import Enum
 from typing import Dict, List, Sequence, Tuple, Union
 
 import ocGraph
-from model import Model, ModelType
+from model import Model
 from report import ReportSortName, SeparatorType, SortDirection
 from sbm_manager import SBMManager
 from vbm_manager import VBMManager
@@ -65,7 +65,7 @@ class OCUtils:
         self._next_id = 0
         self._no_ipf = 0
         self._percent_correct = 0
-        self._ref_model = ModelType.DEFAULT
+        self._ref_model = 'default'
         self._report = self._manager.report
         self._report.separator = (
             SeparatorType.SPACE
@@ -80,7 +80,7 @@ class OCUtils:
         self._skip_nominal = False
         self._skip_trained_model_table = True
         self._sort_dir = SortDirection.ASCENDING
-        self.start_model = ModelType.DEFAULT
+        self.start_model = 'default'
         self._total_gen = 0
         self._total_kept = 0
         self._use_inverse_notation = False
@@ -148,13 +148,10 @@ class OCUtils:
     def set_sort_dir(self, sort_dir: SortDirection) -> None:
         self._sort_dir = sort_dir
 
-    def set_search_sort_dir(self, sort_dir: Union[SortDirection, str]) -> None:
-        if sort_dir == "":
-            sort_dir = SortDirection.DESCENDING
-        sort_dir = SortDirection(sort_dir)
+    def set_search_sort_dir(self, sort_dir: SortDirection) -> None:
         if (
-            sort_dir != SortDirection.ASCENDING
-            and sort_dir != SortDirection.DESCENDING
+            sort_dir.value != SortDirection.ASCENDING.value
+            and sort_dir.value != SortDirection.DESCENDING.value
         ):
             raise AttributeError("set_search_sort_dir")
         self._search_sort_dir = sort_dir
@@ -170,10 +167,8 @@ class OCUtils:
         levels = max(0, levels)  # zero is OK here
         self._search_levels = levels
 
-    def set_report_sort_name(
-        self, sort_name: Union[ReportSortName, str]
-    ) -> None:
-        self._report_sort_name = ReportSortName(sort_name)
+    def set_report_sort_name(self, sort_name: ReportSortName) -> None:
+        self._report_sort_name = sort_name
 
     def set_search_filter(
         self, search_filter: Union[SearchFilter, str]
@@ -183,9 +178,9 @@ class OCUtils:
     def set_alpha_threshold(self, alpha_threshold: str) -> None:
         self._alpha_threshold = float(alpha_threshold)
 
-    def set_start_model(self, start_model: Union[ModelType, str]) -> None:
-        if start_model not in [*ModelType, ""]:
-            self.check_model_name(start_model.name)
+    def set_start_model(self, start_model: str) -> None:
+        if start_model not in ["top", "bottom", "default", ""]:
+            self.check_model_name(start_model)
         self.start_model = start_model
 
     def set_fit_model(self, fit_model: str) -> None:
@@ -208,6 +203,9 @@ class OCUtils:
 
     def set_no_ipf(self, state: int) -> None:
         self._no_ipf = state
+
+    def set_ref_model(self, ref_model: str) -> None:
+        self._ref_model = ref_model
 
     @property
     def is_directed(self) -> bool:
@@ -355,25 +353,25 @@ class OCUtils:
                 raise sys.exit()
 
         if self.start_model == "":
-            self.start_model = ModelType.DEFAULT
+            self.start_model = 'default'
         if self.search_dir == SearchDirection.DEFAULT:
             self.search_dir = SearchDirection.UP
         # set start model. For chain search, ignore any specific starting model
         # otherwise, if not set, set the start model based on search direction
         if (
             self._search_filter == SearchFilter.CHAIN
-            or self.start_model == ModelType.DEFAULT
+            or self.start_model == 'default'
         ) and self.search_dir == SearchDirection.DOWN:
-            self.start_model = ModelType.TOP
+            self.start_model = 'top'
         elif (
             self._search_filter == SearchFilter.CHAIN
-            or self.start_model == ModelType.DEFAULT
+            or self.start_model == 'default'
         ) and self.search_dir == SearchDirection.UP:
-            self.start_model = ModelType.BOTTOM
+            self.start_model = 'bottom'
         start = self._manager.get_model(self.start_model, True)
         self._manager.ref_model = self._ref_model
-        self._manager.use_inverse_notation(self._use_inverse_notation)
-        self._manager.values_are_functions(self._values_are_functions)
+        self._manager.inverse_notation = self._use_inverse_notation
+        self._manager.values_are_functions = self._values_are_functions
         self._manager.alpha_threshold = self._alpha_threshold
         if self.search_dir == SearchDirection.DOWN:
             self._manager.search_direction = SearchDirection.DOWN
@@ -450,19 +448,19 @@ class OCUtils:
 
     def do_sb_search(self, print_options: int) -> None:
         if self.start_model == "":
-            self.start_model = ModelType.DEFAULT
+            self.start_model = 'default'
         if self.search_dir == SearchDirection.DEFAULT:
             self.search_dir = SearchDirection.UP
         if (
             self._search_filter == SearchFilter.CHAIN
-            or self.start_model == ModelType.DEFAULT
+            or self.start_model == 'default'
         ) and self.search_dir == SearchDirection.DOWN:
-            self.start_model = ModelType.TOP
+            self.start_model = 'top'
         elif (
             self._search_filter == SearchFilter.CHAIN
-            or self.start_model == ModelType.DEFAULT
+            or self.start_model == 'default'
         ) and self.search_dir == SearchDirection.UP:
-            self.start_model = ModelType.BOTTOM
+            self.start_model = 'bottom'
         start = self._manager.get_model(self.start_model, True)
         self._manager.ref_model = self._ref_model
         if self.search_dir == SearchDirection.DOWN:
@@ -865,16 +863,16 @@ class OCUtils:
         models = self._manager.get_option_list("short-model")
         # for search, only one specified model allowed
         if len(models) > 0:
-            self.start_model = ModelType(models[0])
-            self._fit_models = [ModelType(model) for model in models]
+            self.start_model = models[0]
+            self._fit_models = models
 
     def do_action(self, print_options: int, only_gfx: bool = False) -> None:
         # set reporting variables based on ref model
-        if self._ref_model == ModelType.DEFAULT:
+        if self._ref_model == 'default':
             if self.search_dir == SearchDirection.DOWN:
-                self._ref_model = ModelType.TOP
+                self._ref_model = 'top'
             else:
-                self._ref_model = ModelType.BOTTOM
+                self._ref_model = 'bottom'
 
         if self._action == Action.SEARCH:
             self._manager.ddf_method = self._ddf_method

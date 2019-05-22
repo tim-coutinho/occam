@@ -105,8 +105,8 @@ class Manager:
 
     search_type = property(fset=set_search_type)
 
-    def set_ref_model(self, model) -> None:
-        self._ref.setRefModel(model)
+    def set_ref_model(self, model_type: str) -> None:
+        self._ref.setRefModel(model_type)
 
     ref_model = property(fset=set_ref_model)
 
@@ -154,11 +154,11 @@ class Manager:
     def print_fit_report(self, model: Model) -> None:
         self._ref.printFitReport(model.ref)
 
-    def get_model(self, model_type: ModelType, make_project: bool) -> Model:
-        if model_type == ModelType.UP:
+    def get_model(self, model: str, make_project: bool) -> Model:
+        if model == 'top':
             model = self.top_ref_model
-        elif model_type == ModelType.BOTTOM:
+        elif model == 'bottom':
             model = self.bottom_ref_model
         else:
-            model = self.make_model(model_type.value, make_project)
+            model = self.make_model(model, make_project)
         return model
