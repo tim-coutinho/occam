@@ -38,8 +38,8 @@ class Search:
 
 
     def execute(self):
-        #If manager type is SB
-        if self._manger_type == "SB":
+        #If manager type is VB
+        if self._manger_type == "VB":
             if self._manager.is_directed():
                 if self.search_dir == SearchDirection.DOWN:
                     if self._search_filter == SearchFilter.DISJOINT:
