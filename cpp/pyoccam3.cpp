@@ -1792,17 +1792,6 @@ PyTypeObject TModel = {
 /****** Report ******/
 /************************/
 
-//Capstone 2019 - Huy Yang
-DefinePyFunction(Report, getManager){
-    Report* report = ObjRef(self, Report);
-    PManager *list = ObjNew(Manager);
-    list->obj = report -> getManager();
-
-    Py_INCREF(list);
-
-    return (PyObject*) list;
-}
-
 // Object* get(char *name)
 DefinePyFunction(Report, get) {
     Report *report = ObjRef(self, Report);
@@ -2056,7 +2045,6 @@ DefinePyFunction(Report, bestModelData) {
 
 
 static struct PyMethodDef Report_methods[] = {
-    PyMethodDef(Report, addManager),
     PyMethodDef(Report, addModel),
     PyMethodDef(Report, bestModelData),
     PyMethodDef(Report, bestModelName),

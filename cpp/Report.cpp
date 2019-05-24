@@ -42,13 +42,6 @@ Report::~Report() {
     delete[] attrs;
 }
 
-// Getters Capstone Team A
-ManagerBase* Report::getManager() {
-  return manager;
-}
-// Getters Catstone Team A
-
-
 void Report::addModel(class Model *model) {
     const int FACTOR = 2;
     while (modelCount >= maxModelCount) {
@@ -181,7 +174,7 @@ void Report::print(FILE *fd) {
 //    }
     bool checkIncr = false;
     bool showIncr = false;
-    if ((manager->getSearchDirection() == Direction::Ascending)
+    if ((manager->getSearchDirection() == Direction::Ascending) 
      && (models[0]->getAttribute(ATTRIBUTE_INCR_ALPHA) != -1)) {
         checkIncr = true;
     }
@@ -281,7 +274,7 @@ void Report::print(FILE *fd) {
 
     if (showPercentCorrect) {
         if (!htmlMode) {
-            fprintf(fd, "Best Model(s) by %%C(Test):\n");
+            fprintf(fd, "Best Model(s) by %%C(Test):\n"); 
             fprintf(fd, "Warning: models should not be selected based on %%correct(test).\n");
         }
         else {
@@ -487,7 +480,7 @@ void printConfusionMatrixStatsHTML(const char* dv_name, const char* dv_target, d
     // F-measure
     const double f_1 = 2 * (precision * sensitivity) / (precision + sensitivity);
 
-    // TODO : what's missing?
+    // TODO : what's missing? 
     printf("<table style='text-align:right;'>");
     // TODO: comment out or remove the line below - accuracy is reported elsewhere
     printf("<tr><th>Statistic</th><th>Definition</th><th>Value</th>");
@@ -533,14 +526,14 @@ void printConfusionMatrixStatsCSV(const char* dv_name, const char* dv_target, do
     printf("\n");
 }
 
-void Report::printConfusionMatrix(Model* model, Relation* rel,
+void Report::printConfusionMatrix(Model* model, Relation* rel, 
                                   const char* dv_name, const char* dv_target,
-                                  double trtp, double trfp,
+                                  double trtp, double trfp, 
                                   double trtn, double trfn,
-                                  bool test, double tetp,  double tefp,
+                                  bool test, double tetp,  double tefp, 
                                   double tetn, double tefn) {
     if (dv_target < 0) { return; }
-
+  
 
     if (htmlMode) printf("<br><br>"); else printf("\n\n");
     if (model == NULL) {

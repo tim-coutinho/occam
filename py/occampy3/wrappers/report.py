@@ -82,9 +82,5 @@ class Report:
     def print_report(self) -> None:
         self._ref.printReport()
 
-    def get_manager(self):
-        self._ref.getManager()
-      
     def best_model_data(self) -> Dict:
         return self._ref.bestModelData()
-

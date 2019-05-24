@@ -84,8 +84,6 @@ DefinePyObject(Variable);
 DefineIterablePyObject(VariableList)
 
 
-DefinePyObject(Manager);
-
 /**************************/
 /****** VBMManager ******/
 /**************************/
@@ -1666,7 +1664,7 @@ DefinePyFunction(Model, new) {
 
 // Object* get(char *name)
 DefinePyFunction(Report, get) {
-    Report *report = ObjRef(self, Report);      //Creates a reference to a variable of the Python wrapper type
+    Report *report = ObjRef(self, Report);
     TRACE_FN("Report::get", __LINE__, report);
     char *name;
     PyArg_ParseTuple(args, "s", &name);
@@ -1929,22 +1927,24 @@ DefinePyFunction(Report, bestModelData) {
 }
 
 
-static struct PyMethodDef Report_methods[] = { 
-        PyMethodDef(Report, bestModelName), 
-        PyMethodDef(Report, bestModelData), 
-        PyMethodDef(Report, get), 
-        PyMethodDef(Report, addModel),
-        PyMethodDef(Report, setDefaultFitModel), 
-        PyMethodDef(Report, setAttributes), 
-        PyMethodDef(Report, sort),
-        PyMethodDef(Report, printReport), 
-        PyMethodDef(Report, writeReport), 
-        PyMethodDef(Report, setSeparator),
-        PyMethodDef(Report, printResiduals), 
-        PyMethodDef(Report, printConditional_DV), 
-        PyMethodDef(Report, variableList), 
-        PyMethodDef(Report, dvName), 
-        PyMethodDef(Report, bestModelBIC), { NULL, NULL, 0 } };
+static struct PyMethodDef Report_methods[] = {
+    PyMethodDef(Report, addModel),
+    PyMethodDef(Report, bestModelBIC),
+    PyMethodDef(Report, bestModelData),
+    PyMethodDef(Report, bestModelName),
+    PyMethodDef(Report, dvName),
+    PyMethodDef(Report, get),
+    PyMethodDef(Report, printConditional_DV),
+    PyMethodDef(Report, printReport),
+    PyMethodDef(Report, printResiduals),
+    PyMethodDef(Report, setAttributes),
+    PyMethodDef(Report, setDefaultFitModel),
+    PyMethodDef(Report, setSeparator),
+    PyMethodDef(Report, sort),
+    PyMethodDef(Report, variableList),
+    PyMethodDef(Report, writeReport),
+    { NULL, NULL, 0 }
+};
 /****** Basic Type Operations ******/
 
 /* commented out because it is currently unused
@@ -2166,7 +2166,7 @@ extern "C" {
 
 void initoccam() {
     PyObject *m, *d;
-    m = Py_InitModule("occam", occam_methods); 
+    m = Py_InitModule("occam", occam_methods);
     d = PyModule_GetDict(m);
     ErrorObject = Py_BuildValue("s", "occam.error");
     PyDict_SetItemString(d, "error", ErrorObject);
