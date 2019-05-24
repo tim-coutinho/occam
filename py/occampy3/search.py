@@ -21,34 +21,50 @@ class Search:
         else:
             self._manger = SBMManager()
             self._manger_type = "SB"
-        self.search_dir = SearchDirection.DOWN
-        self._search_filter = SearchFilter.LOOPLESS
-        self.report = self._manager.report
-        self._start_model = ModelType.DEFUALT
-        self._ref_model = ModelType.DEFAULT
-        self._use_inverse_notation = False
-        self._values_are_functions = False
         self._alpha_threshold = 0.05
         self._bp_statistics = 0
-        self._percent_correct = 0
-        self._next_id = 0
+        self._data_file = ""
+        self._fit_classifier_target = ""
+        self._generate_graph = False
+        self._generate_gephi = False
+        self._graph_font_size = 12
+        self._graph_height = 500
+        self._graph_node_size = 36
+        self._graph_width = 500
         self._hide_intermediate_output = False
+        self._hide_isolated = True
+        self._HTMLFormat = 0
+        self._incremental_alpha = 0
+        self._layout_style = None
+        self._next_id = 0
+        self._percent_correct = 0
+        self._ref_model = ModelType.DEFAULT
+        self._report = self._manager.report
+        self._report_sort_name = ""
+        self._search_dir = SearchDirection.DEFAULT
+        self._search_filter = SearchFilter.LOOPLESS
+        self._search_levels = 7
+        self._search_sort_dir = SortDirection.ASCENDING
+        self._search_width = 3
+        self._skip_nominal = 0
+        self._sort_dir = SortDirection.ASCENDING
+        self._sort_name = "ddf"
+        self._start_model = ModelType.DEFUALT
         self._total_gen = 0
         self._total_kept = 0
-        self._search_width = 3
-        self._search_sort_dir = SortDirection.ASCENDING
-
+        self._use_inverse_notation = False
+        self._values_are_functions = False
 
     def execute(self):
         #If manager type is VB
         if self._manger_type == "VB" and self._manager.is_directed():
-                if self.search_dir == SearchDirection.DOWN:
+                if self._search_dir == SearchDirection.DOWN:
                     if self._search_filter == SearchFilter.DISJOINT:
                         pass
                     elif self._search_filter == SearchFilter.CHAIN:
                         raise Exception('ERROR: Directed Down Chain Search not yet implemented.')
         else:
-            if self.search_dir == SearchDirection.UP:
+            if self._search_dir == SearchDirection.UP:
                 pass
             else:
                 if self._search_filter == SearchFilter.DISJOINT:
@@ -58,16 +74,16 @@ class Search:
         #Shared for SB and VB
         if self._start_model == "":
             self._start_model = ModelType.DEFAULT
-        if self.search_dir == SearchDirection.DEFAULT:
-            self.search_dir = SearchDirection.UP
+        if self._search_dir == SearchDirection.DEFAULT:
+            self._search_dir = SearchDirection.UP
 
         if (
             self._search_filter == SearchFilter.CHAIN or self._start_model == ModelType.DEFAULT
-        ) and self.search_dir == SearchDirection.DOWN:
+        ) and self._search_dir == SearchDirection.DOWN:
             self._start_model = ModelType.TOP
         elif (
             self._search_filter == SearchFilter.CHAIN or self._start_model == ModelType.DEFAULT
-        ) and self.search_dir == SearchDirection.UP:
+        ) and self._search_dir == SearchDirection.UP:
             self._start_model = ModelType.BOTTOM
         if self._start_model == ModelType.TOP:
             start = self._manager.get_top_ref_model()
@@ -82,7 +98,7 @@ class Search:
             self._manager.values_are_functions(self._values_are_functions)
             self._manager.set_alpha_threshold(self._alpha_threshold)
         #Shared for SB and VB
-        if self.search_dir == SearchDirection.DOWN:
+        if self._search_dir == SearchDirection.DOWN:
             self._manager.set_search_direction(SearchDirection.DOWN)
         else:
             self._manager.set_search_direction(SearchDirection.UP)
@@ -208,13 +224,13 @@ class Search:
             )
 
         if r_type == 1:
-            self.print_option("Starting model", self.start_model)
-            self.print_option("Search direction", self.search_dir)
+            self.print_option("Starting model", self._start_model)
+            self.print_option("Search direction", self._search_dir)
             self.print_option("Ref model", self._ref_model)
             self.print_option("Models to consider", self._search_filter)
             self.print_option("Search width", self._search_width)
             self.print_option("Search levels", self._search_levels)
-            self.print_option("Search sort by", self.sort_name)
+            self.print_option("Search sort by", self._sort_name)
             self.print_option("Search preference", self._search_sort_dir)
             self.print_option("Report sort by", self._report_sort_name)
             self.print_option("Report preference", self._sort_dir.value)
@@ -251,7 +267,7 @@ class Search:
                 self.compute_sort_statistic(new_model)
                 # need a fix here (or somewhere) to check for (and remove) models that have the same DF as the progenitor
                 # decorate model with a key for sorting, & push onto heap
-                key = new_model.get(self.sort_name)
+                key = new_model.get(self._sort_name)
                 if self._search_sort_dir == SortDirection.DESCENDING:
                     key = -key
                 heapq.heappush(
@@ -266,13 +282,13 @@ class Search:
         return add_count
 
     def compute_sort_statistic(self, model):
-        if self.sort_name in ("h", "information", "unexplained", "alg_t"):
+        if self._sort_name in ("h", "information", "unexplained", "alg_t"):
             self._manager.computeInformationsStatistics(model)
-        elif self.sort_name in ("df", "ddf"):
+        elif self._sort_name in ("df", "ddf"):
             self._manager.computeDFStatistics(model)
-        elif self.sort_name in ("bp_t", "bp_information", "bp_alpha"):
+        elif self._sort_name in ("bp_t", "bp_information", "bp_alpha"):
             self._manager.computeBPStatistics(model)
-        elif self.sort_name == "pct_correct_data":
+        elif self._sort_name == "pct_correct_data":
             self._manager.computePercentCorrect(model)
         # anything else, just compute everything we might need
         else:
