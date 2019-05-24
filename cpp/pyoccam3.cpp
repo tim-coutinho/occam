@@ -1795,12 +1795,18 @@ PyTypeObject TModel = {
 //Capstone 2019 - Huy Yang
 DefinePyFunction(Report, getManager){
     Report* report = ObjRef(self, Report);
-    PManager *list = ObjNew(Manager);
-    list->obj = report -> getManager();
+    
+    #ifdef SB
+	PSBMManager *mgr = ObjNew(SBMManager);
+	mgr->obj = dynamic_cast<SBMManager*>(report -> getManager());
+    #else
+	PVBMManager *mgr = ObjNew(VBMManager);
+	mgr->obj = dynamic_cast<VBMManager*>(report -> getManager());
+    #endif
 
-    Py_INCREF(list);
+    Py_INCREF(mgr);
 
-    return (PyObject*) list;
+    return (PyObject*) mgr;
 }
 
 // Object* get(char *name)
@@ -2056,7 +2062,7 @@ DefinePyFunction(Report, bestModelData) {
 
 
 static struct PyMethodDef Report_methods[] = {
-    PyMethodDef(Report, addManager),
+    PyMethodDef(Report, getManager),
     PyMethodDef(Report, addModel),
     PyMethodDef(Report, bestModelData),
     PyMethodDef(Report, bestModelName),
