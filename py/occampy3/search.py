@@ -57,20 +57,21 @@ class Search:
 
     def execute(self):
         #If manager type is VB
-        if self._manger_type == "VB" and self._manager.is_directed():
+        if self._manger_type == "VB":
+            if self._manager.is_directed():
                 if self._search_dir == SearchDirection.DOWN:
                     if self._search_filter == SearchFilter.DISJOINT:
                         pass
                     elif self._search_filter == SearchFilter.CHAIN:
                         raise Exception('ERROR: Directed Down Chain Search not yet implemented.')
-        else:
-            if self._search_dir == SearchDirection.UP:
-                pass
             else:
-                if self._search_filter == SearchFilter.DISJOINT:
+                if self._search_dir == SearchDirection.UP:
                     pass
-                elif self._search_filter == SearchFilter.CHAIN:
-                    raise Exception('ERROR: Neutral Down Chain Search not yet implemented.')
+                else:
+                    if self._search_filter == SearchFilter.DISJOINT:
+                        pass
+                    elif self._search_filter == SearchFilter.CHAIN:
+                        raise Exception('ERROR: Neutral Down Chain Search not yet implemented.')
         #Shared for SB and VB
         if self._start_model == "":
             self._start_model = ModelType.DEFAULT
