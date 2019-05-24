@@ -84,8 +84,6 @@ DefinePyObject(Variable);
 DefineIterablePyObject(VariableList)
 
 
-DefinePyObject(Manager);
-
 /**************************/
 /****** VBMManager ******/
 /**************************/
@@ -1929,21 +1927,21 @@ DefinePyFunction(Report, bestModelData) {
 }
 
 
-static struct PyMethodDef Report_methods[] = { 
-        PyMethodDef(Report, bestModelName), 
-        PyMethodDef(Report, bestModelData), 
-        PyMethodDef(Report, get), 
+static struct PyMethodDef Report_methods[] = {
+        PyMethodDef(Report, bestModelName),
+        PyMethodDef(Report, bestModelData),
+        PyMethodDef(Report, get),
         PyMethodDef(Report, addModel),
-        PyMethodDef(Report, setDefaultFitModel), 
-        PyMethodDef(Report, setAttributes), 
+        PyMethodDef(Report, setDefaultFitModel),
+        PyMethodDef(Report, setAttributes),
         PyMethodDef(Report, sort),
-        PyMethodDef(Report, printReport), 
-        PyMethodDef(Report, writeReport), 
+        PyMethodDef(Report, printReport),
+        PyMethodDef(Report, writeReport),
         PyMethodDef(Report, setSeparator),
-        PyMethodDef(Report, printResiduals), 
-        PyMethodDef(Report, printConditional_DV), 
-        PyMethodDef(Report, variableList), 
-        PyMethodDef(Report, dvName), 
+        PyMethodDef(Report, printResiduals),
+        PyMethodDef(Report, printConditional_DV),
+        PyMethodDef(Report, variableList),
+        PyMethodDef(Report, dvName),
         PyMethodDef(Report, bestModelBIC), { NULL, NULL, 0 } };
 /****** Basic Type Operations ******/
 
@@ -2166,7 +2164,7 @@ extern "C" {
 
 void initoccam() {
     PyObject *m, *d;
-    m = Py_InitModule("occam", occam_methods); 
+    m = Py_InitModule("occam", occam_methods);
     d = PyModule_GetDict(m);
     ErrorObject = Py_BuildValue("s", "occam.error");
     PyDict_SetItemString(d, "error", ErrorObject);
