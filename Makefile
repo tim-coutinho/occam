@@ -180,6 +180,7 @@ install: lib $(WEB_FILES_PY3) $(CORE_FILES_PY3) $(CL_FILES_PY3) $(CAPSTONE_FILES
 	cp $(SETUP_FILE) $(INSTALL_ROOT)
 	mkdir -p $(WEB_ROOT)/data
 	touch cpp/__init__.py
+	cp cpp/occam.so py/occampy3/
 
 web:
 	mkdir -p $(WEB_ROOT)
