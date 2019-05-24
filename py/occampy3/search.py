@@ -7,6 +7,7 @@ from wrappers.vbm_manager import VBMManager
 from wrappers.sbm_manager import SBMManager
 from wrappers.manager import SearchDirection, SearchFilter, SearchType
 from wrappers.model import Model, ModelType
+from wrappers.report import SortDirection
 from typing import Optional, Sequence
 from typing import List
 
@@ -35,27 +36,25 @@ class Search:
         self._total_gen = 0
         self._total_kept = 0
         self._search_width = 3
+        self._search_sort_dir = SortDirection.ASCENDING
 
 
     def execute(self):
         #If manager type is VB
-        if self._manger_type == "VB":
-            if self._manager.is_directed():
+        if self._manger_type == "VB" and self._manager.is_directed():
                 if self.search_dir == SearchDirection.DOWN:
                     if self._search_filter == SearchFilter.DISJOINT:
                         pass
                     elif self._search_filter == SearchFilter.CHAIN:
-                        print('ERROR: Directed Down Chain Search not yet implemented.')
-                        raise sys.exit()
+                        raise Exception('ERROR: Directed Down Chain Search not yet implemented.')
+        else:
+            if self.search_dir == SearchDirection.UP:
+                pass
             else:
-                if self.search_dir == SearchDirection.UP:
+                if self._search_filter == SearchFilter.DISJOINT:
                     pass
-                else:
-                    if self._search_filter == SearchFilter.DISJOINT:
-                        pass
-                    elif self._search_filter == SearchFilter.CHAIN:
-                        print('ERROR: Neutral Down Chain Search not yet implemented.')
-                        raise sys.exit()
+                elif self._search_filter == SearchFilter.CHAIN:
+                    raise Exception('ERROR: Neutral Down Chain Search not yet implemented.')
         #Shared for SB and VB
         if self._start_model == "":
             self._start_model = ModelType.DEFAULT
@@ -154,7 +153,7 @@ class Search:
             # if the list is empty, stop. Also, only do one step for chain search
             if self._search_filter == SearchFilter.CHAIN or len(old_models) == 0:
                 break
-            print()
+            print("")
 
     def process_level(self,
                       level: int,
@@ -225,24 +224,14 @@ class Search:
                 "Generate hypergraph images",
                 "Y" if self._generate_graph else "N",
             )
-            self.print_option(
-                "Generate Gephi files", "Y" if self._generate_gephi else "N"
-            )
+            self.print_option("Generate Gephi files", "Y" if self._generate_gephi else "N")
 
         if self._generate_graph:
-            self.print_option(
-                "Hypergraph layout style", str(self._layout_style)
-            )
+            self.print_option("Hypergraph layout style", str(self._layout_style))
             self.print_option("Hypergraph image width", str(self._graph_width))
-            self.print_option(
-                "Hypergraph image height", str(self._graph_height)
-            )
-            self.print_option(
-                "Hypergraph font size", str(self._graph_font_size)
-            )
-            self.print_option(
-                "Hypergraph node size", str(self._graph_node_size)
-            )
+            self.print_option("Hypergraph image height", str(self._graph_height))
+            self.print_option("Hypergraph font size", str(self._graph_font_size))
+            self.print_option("Hypergraph node size", str(self._graph_node_size))
 
         if self._generate_gephi or self._generate_graph:
             self.print_option(
@@ -250,3 +239,42 @@ class Search:
                 "Y" if self._hide_isolated else "N",
             )
         sys.stdout.flush()
+
+    def process_model(self, level, new_models_heap, model):
+        add_count = 0
+        generated_models = self._manager.searchOneLevel(model)
+        for new_model in generated_models:
+            if new_model.get("processed") <= 0.0:
+                new_model.processed = 1.0
+                new_model.level = level
+                new_model.setProgenitor(model)
+                self.compute_sort_statistic(new_model)
+                # need a fix here (or somewhere) to check for (and remove) models that have the same DF as the progenitor
+                # decorate model with a key for sorting, & push onto heap
+                key = new_model.get(self.sort_name)
+                if self._search_sort_dir == SortDirection.DESCENDING:
+                    key = -key
+                heapq.heappush(
+                    new_models_heap, ([key, new_model.get("name")], new_model)
+                )  # appending the model name makes sort alphabet-consistent
+                add_count += 1
+            else:
+                if self._incremental_alpha:
+                    # this model has been made already, but this progenitor might lead to a better Incr.Alpha
+                    # so we ask the manager to check on that, and save the best progenitor
+                    self._manager.compareProgenitors(new_model, model)
+        return add_count
+
+    def compute_sort_statistic(self, model):
+        if self.sort_name in ("h", "information", "unexplained", "alg_t"):
+            self._manager.computeInformationsStatistics(model)
+        elif self.sort_name in ("df", "ddf"):
+            self._manager.computeDFStatistics(model)
+        elif self.sort_name in ("bp_t", "bp_information", "bp_alpha"):
+            self._manager.computeBPStatistics(model)
+        elif self.sort_name == "pct_correct_data":
+            self._manager.computePercentCorrect(model)
+        # anything else, just compute everything we might need
+        else:
+            self._manager.computeL2Statistics(model)
+            self._manager.computeDependentStatistics(model)
