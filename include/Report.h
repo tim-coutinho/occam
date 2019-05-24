@@ -16,7 +16,7 @@ constexpr const char* equals_sign(bool html) {
     return html ?  "<b style='font-size:110%;'>=</b>" : "=";
 }
 
-constexpr const char* not_equals_sign(bool html) { 
+constexpr const char* not_equals_sign(bool html) {
     return html ? "<b style='font-size:110%;'>&ne;</b>" : "=not";
 }
 
@@ -35,15 +35,17 @@ class dv_Data{
 int sortKeys(const void *d1, const void *d2);
 int sortCompare(const void *k1, const void *k2);
 void orderIndices(const char **stringArray, int len, int *order);
-	
+
 class Report {
     public:
 	Report(class ManagerBase *mgr);
 	~Report();
 
+    ManagerBase* getManager();
+
     void newl(FILE* fd);
     void hl(FILE* fd);
-    int sepStyle(); 
+    int sepStyle();
     void header(FILE* fd, Relation* rel, bool printLift, bool printCalc, bool printStart=true);
     const char* format(bool printLift, bool printCalc);
     void footer(FILE* fd);
@@ -102,7 +104,7 @@ class Report {
     // static variables
     // used several places, such as Report::print
     static int maxNameLength;
-	
+
     class ManagerBase *manager;
 
 	static bool htmlMode;
@@ -119,7 +121,7 @@ class Report {
 
     void printTableRow(FILE* fd, bool blue, VariableList* vl, int var_count, Relation* rel, double value, KeySegment* refkey, double refvalue, double iviValue, double adjustConstant, double sample_size, bool printLift, bool printCalc);
     void printTable(FILE* fd, Relation* rel, Table* fit_table, Table* input_table, Table* indep_table, double adjustConstant, double sample_size, bool printLift, bool printCalc);
-    
+
     void printTestData(FILE* fd, Relation* rel, Table* fit_table, Table* indep_table, double adjustConstant, int keysize, bool printCalc, bool printLift);
 
     void printDyadSummary(FILE* fd, Model* model);
