@@ -1,0 +1,47 @@
+#!/usr/bin/python3.7
+
+import sys
+sys.path.insert(0, "./wrappers")
+
+import argparse
+import os
+from fit_3 import Fit
+from utils import CLIUtils
+
+
+def main() -> int:
+    parser = argparse.ArgumentParser("OCCAM Command Line Interface")
+    subparsers = parser.add_subparsers(dest='subparser_name')
+    subparsers.required = True
+
+    common_parser = argparse.ArgumentParser(add_help=False)
+    common_parser.add_argument('--data_file', required=True, help='Data file used for computation')
+
+    sp = subparsers.add_parser('compute_fit', parents=[common_parser])
+    sp.add_argument('--fit_model', required=True, choices=['IV', 'IVI'], help='Fit model')
+    sp.add_argument('--skip_nominal', action='store_true', help='Whether to skip the nominal')
+
+    args = parser.parse_args()
+
+    if not os.path.exists(args.data_file):
+        raise FileNotFoundError("Invalid data file path")
+
+    if args.subparser_name == 'compute_fit':
+        # TODO: fix the cpp side to accept only the data file instead of a list which includes sys.argv[0]
+        fit = Fit.from_data_file(file_path=[sys.argv[0], args.data_file], skip_nominal=args.skip_nominal,
+                                 fit_model=args.fit_model)
+
+        CLIUtils.print_manager_options(solver=fit)
+        CLIUtils.print_solver_options(solver=fit)
+        CLIUtils.print_basic_statistics(solver=fit)
+
+        fit.execute()
+        return 0
+    else:
+        parser.print_help()
+
+    return 1
+
+
+if __name__ == "__main__":
+    sys.exit(main())
