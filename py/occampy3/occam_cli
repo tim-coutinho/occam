@@ -5,7 +5,7 @@ sys.path.insert(0, "./wrappers")
 
 import argparse
 import os
-from fit_3 import Fit
+from fit import Fit
 from utils import CLIUtils
 
 
@@ -24,7 +24,7 @@ def main() -> int:
     args = parser.parse_args()
 
     if not os.path.exists(args.data_file):
-        raise FileNotFoundError("Invalid data file path")
+        raise FileNotFoundError(f"Invalid data file path: '{args.data_file}'")
 
     if args.subparser_name == 'compute_fit':
         # TODO: fix the cpp side to accept only the data file instead of a list which includes sys.argv[0]
