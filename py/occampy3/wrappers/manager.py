@@ -1,8 +1,8 @@
 from enum import Enum
 from typing import List, Sequence, Tuple, Union
 
-from model import Model, ModelType
-from report import Report
+from .model import Model, ModelType
+from .report import Report
 
 
 class SearchDirection(Enum):

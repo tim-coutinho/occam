@@ -1,8 +1,8 @@
 from enum import Enum
 from typing import Dict
 
-from model import Model
-from variable_list import VariableList
+from .model import Model
+from .variable_list import VariableList
 
 
 class SeparatorType(Enum):

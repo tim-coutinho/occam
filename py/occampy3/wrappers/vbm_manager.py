@@ -1,7 +1,7 @@
-from manager import Manager
-from model import Model
-from occam import VBMManager as VBMManager_cpp
-from variable_list import VariableList
+from .manager import Manager
+from .model import Model
+from .occam import VBMManager as VBMManager_cpp
+from .variable_list import VariableList
 
 
 class VBMManager(Manager):

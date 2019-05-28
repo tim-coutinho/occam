@@ -16,11 +16,11 @@ class Search:
 
     def __init__(self, opt: str):
         if opt == "VB":
-            self._manger = VBManager()
+            self._manager = VBMManager()
             self._manager_type = "VB"
         else:
-            self._manger = SBMManager()
-            self._manger_type = "SB"
+            self._manager = SBMManager()
+            self._manager_type = "SB"
         self._alpha_threshold = 0.05
         self._bp_statistics = 0
         self._data_file = ""
@@ -38,7 +38,7 @@ class Search:
         self._layout_style = None
         self._next_id = 0
         self._percent_correct = 0
-        self._ref_model = ModelType.DEFAULT
+        self._ref_model = "default"
         self._report = self._manager.report
         self._report_sort_name = ""
         self._search_dir = SearchDirection.DEFAULT
@@ -49,16 +49,21 @@ class Search:
         self._skip_nominal = 0
         self._sort_dir = SortDirection.ASCENDING
         self._sort_name = "ddf"
-        self._start_model = ModelType.DEFUALT
+        self._start_model = "default"
         self._total_gen = 0
         self._total_kept = 0
         self._use_inverse_notation = False
         self._values_are_functions = False
 
-    def execute(self):
+    def execute(self, datafile: Sequence[str]):
+        if self._manager_type == "VB":
+            self._manager = VBMManager()
+        else:
+            self._manager = SBMManager()
+        self._manager.init_from_command_line(datafile)
         #If manager type is VB
-        if self._manger_type == "VB":
-            if self._manager.is_directed():
+        if self._manager_type == "VB":
+            if self._manager.is_directed:
                 if self._search_dir == SearchDirection.DOWN:
                     if self._search_filter == SearchFilter.DISJOINT:
                         pass
@@ -91,7 +96,7 @@ class Search:
         elif self._start_model == ModelType.BOTTOM:
             start = self._manager.get_bottom_ref_model()
         else:
-            start = self._manager.make_model(self._start_model, True)
+            start = self._manager.make_model(self._start_model, 1)
         self._manager.set_ref_model(self._ref_model)
         #If manager type is VB
         if self._manager_type == "VB":
