@@ -1,6 +1,7 @@
 from enum import Enum
 from model import Model
 from report import Report
+from option import Option
 from typing import Sequence, Union
 
 
@@ -74,6 +75,9 @@ class Manager:
     @property
     def sample_size(self) -> int:
         return int(self._ref.getSampleSz())
+
+    def all_options(self) -> Sequence[Option]:
+        return [Option(option_ref) for option_ref in self._ref.getAllOptions()]
 
     def set(self, **kwargs):
         pass

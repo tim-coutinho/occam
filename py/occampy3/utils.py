@@ -15,6 +15,19 @@ class CLIUtils:
         print(f"Variables in use ({len(var_names)}), {','.join(var_names)}")
 
     @classmethod
+    def print_manager_options(cls, solver: Fit) -> None:
+        print("Option settings:")
+
+        if solver.skip_nominal:
+            print("(Omitting variable definitions.)")
+
+        for option in solver.manager.all_options():
+            if solver.skip_nominal and option.name == 'nominal':
+                continue
+
+            print(f"{option.name}: {option.value}")
+
+    @classmethod
     def print_solver_options(cls, solver: Fit) -> None:
         if solver.fit_classifier_target != "":
             print(f"Default ('negative') state for confusion matrices {solver.fit_classifier_target}")

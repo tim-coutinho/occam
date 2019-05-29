@@ -10,6 +10,7 @@
 
 #include "stdlib.h"
 #include <stdio.h>
+#include <string.h>
 
 // maximum line length in input file
 #define MAXLINE 65535
@@ -19,6 +20,58 @@
  * each option has a name and value. The options table holds all the
  * legal options and values, as well as the current options.
  */
+//class ocOption;
+struct ocOptionValue {
+	ocOptionValue *next;
+	char *value;
+	char *tip;
+	ocOptionValue() :
+			next(NULL), value(NULL), tip(NULL) {
+	}
+	~ocOptionValue() {
+		delete value;
+		delete tip;
+	}
+};
+
+struct ocOptionDef {
+	ocOptionDef *next;
+	char *name;
+	char *abbrev;
+	char *tip;
+	bool multi;
+	struct ocOptionValue *values;
+	ocOptionDef() :
+			next(NULL), name(NULL), abbrev(NULL), tip(NULL), multi(false), values(NULL) {
+	}
+	~ocOptionDef() {
+		delete name;
+		delete abbrev;
+		delete tip;
+		while (values) {
+			ocOptionValue *p = values;
+			values = p->next;
+			delete p;
+		}
+	}
+};
+
+struct ocOption {
+	ocOption *next;
+	ocOptionDef *def;
+	char *value;
+	ocOption(ocOptionDef *d, const char *v) :
+			next(NULL), def(d), value(NULL) {
+		value = new char[strlen(v) + 1];
+		strcpy(value, v);
+	}
+
+	~ocOption() {
+		if (value)
+			delete value;
+	}
+};
+
 class Options {
     public:
 	Options();
@@ -53,6 +106,9 @@ class Options {
 
 	//-- write options to a file
 	void write(FILE *fd=NULL, bool printHTML=false, bool skipNominal=false);
+
+	ocOption* getOptions();
+	int getOptionsCount();
 
 	class ocOptionDef *defaultOptDef;
     private:
