@@ -96,7 +96,8 @@ class Search:
         elif self._start_model == ModelType.BOTTOM:
             start = self._manager.get_bottom_ref_model()
         else:
-            start = self._manager.make_model(self._start_model, 1)
+            print(self._start_model)
+            start = self._manager.make_model(self._start_model, True)
         self._manager.set_ref_model(self._ref_model)
         #If manager type is VB
         if self._manager_type == "VB":
