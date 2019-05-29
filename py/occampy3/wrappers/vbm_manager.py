@@ -37,3 +37,12 @@ class VBMManager(Manager):
 
     def set_ddf_method(self, ddf_method: int) -> None:
         self._ref.setDDFMethod(ddf_method)
+
+    def set_ref_model(self, name: str) -> None:
+        self._ref.setRefModel(name)
+
+    def compute_information_statistics(self, model: Model) -> None:
+        self._ref.computeInformationStatistics(model.ref)
+
+    def compute_pearson_statistics(self, model: Model) -> None:
+        self._ref.computePearsonStatistics(model.ref)

@@ -697,6 +697,33 @@ DefinePyFunction(VBMManager, getVariableList)
     return (PyObject*) py_variable_list;
 }
 
+DefinePyFunction(VBMManager, getConst) {
+    char* name;
+    PyArg_ParseTuple(args, "s", &name);
+
+    if(strcmp(name, "ATTRIBUTE_DEP_H") == 0)
+      return PyUnicode_FromString(ATTRIBUTE_DEP_H);
+    else if(strcmp(name, "ATTRIBUTE_IND_H") == 0)
+      return PyUnicode_FromString(ATTRIBUTE_IND_H);
+    else if(strcmp(name, "ATTRIBUTE_LR") == 0)
+      return PyUnicode_FromString(ATTRIBUTE_LR);
+    else if(strcmp(name, "ATTRIBUTE_ALPHA") == 0)
+      return PyUnicode_FromString(ATTRIBUTE_ALPHA);
+    else if(strcmp(name, "ATTRIBUTE_P2") == 0)
+      return PyUnicode_FromString(ATTRIBUTE_P2);
+    else if(strcmp(name, "ATTRIBUTE_P2_ALPHA") == 0)
+      return PyUnicode_FromString(ATTRIBUTE_P2_ALPHA);
+    else if(strcmp(name, "ATTRIBUTE_DDF") == 0)
+      return PyUnicode_FromString(ATTRIBUTE_DDF);
+    else if(strcmp(name, "ATTRIBUTE_ALG_H") == 0)
+      return PyUnicode_FromString(ATTRIBUTE_ALG_H);
+    else if(strcmp(name, "ATTRIBUTE_H") == 0)
+      return PyUnicode_FromString(ATTRIBUTE_H);
+
+    Py_INCREF(Py_None);
+    return Py_None;
+}
+
 
 static struct PyMethodDef VBMManager_methods[] = {
         PyMethodDef(VBMManager, compareProgenitors),
@@ -744,6 +771,7 @@ static struct PyMethodDef VBMManager_methods[] = {
         PyMethodDef(VBMManager, setSearchType),
         PyMethodDef(VBMManager, setUseInverseNotation),
         PyMethodDef(VBMManager, setValuesAreFunctions),
+        PyMethodDef(VBMManager, getConst),
         { nullptr }
 };
 
@@ -1679,34 +1707,6 @@ DefinePyFunction(Model, getRelationCount) {
     return Py_BuildValue("i", (mdl->getRelationCount()!= NULL));
 }
 
-DefinePyFunction(Model, getAttributeFromConst) {
-    char* name;
-    PyArg_ParseTuple(args, "s", &name);
-    Model* mdl = ObjRef(self, Model);
-
-    if(strcmp(name, "ATTRIBUTE_DEP_H") == 0)
-      return Py_BuildValue("d", (mdl->getAttribute(ATTRIBUTE_DEP_H)!=NULL));
-    else if(strcmp(name, "ATTRIBUTE_IND_H") == 0)
-      return Py_BuildValue("d", (mdl->getAttribute(ATTRIBUTE_IND_H)!=NULL));
-    else if(strcmp(name, "ATTRIBUTE_LR") == 0)
-      return Py_BuildValue("d", (mdl->getAttribute(ATTRIBUTE_LR)!=NULL));
-    else if(strcmp(name, "ATTRIBUTE_ALPHA") == 0)
-      return Py_BuildValue("d", (mdl->getAttribute(ATTRIBUTE_ALPHA)!=NULL));
-    else if(strcmp(name, "ATTRIBUTE_P2") == 0)
-      return Py_BuildValue("d", (mdl->getAttribute(ATTRIBUTE_P2)!=NULL));
-    else if(strcmp(name, "ATTRIBUTE_P2_ALPHA") == 0)
-      return Py_BuildValue("d", (mdl->getAttribute(ATTRIBUTE_P2_ALPHA)!=NULL));
-    else if(strcmp(name, "ATTRIBUTE_DDF") == 0)
-      return Py_BuildValue("d", (mdl->getAttribute(ATTRIBUTE_DDF)!=NULL));
-    else if(strcmp(name, "ATTRIBUTE_ALG_H") == 0)
-      return Py_BuildValue("d", (mdl->getAttribute(ATTRIBUTE_ALG_H)!=NULL));
-    else if(strcmp(name, "ATTRIBUTE_H") == 0)
-      return Py_BuildValue("d", (mdl->getAttribute(ATTRIBUTE_H)!=NULL));
-
-    Py_INCREF(Py_None);
-    return Py_None;
-}
-
 DefinePyFunction(Model, resetAttributeList) {
     Model* mdl = ObjRef(self, Model);
     AttributeList* alist = mdl->getAttributeList();
@@ -1750,7 +1750,6 @@ static struct PyMethodDef Model_methods[] = {
     PyMethodDef(Model, setProgenitor),
     PyMethodDef(Model, getPrintName),
     PyMethodDef(Model, getRelationCount),
-    PyMethodDef(Model, getAttributeFromConst),
     PyMethodDef(Model, resetAttributeList),
     PyMethodDef(Model, getStructMatrix),
     { nullptr }

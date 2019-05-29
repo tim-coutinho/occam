@@ -523,9 +523,9 @@ def maybe_skip_residuals(form_fields, oc):
 def maybe_skip_ivis(form_fields, oc):
     skip_residuals_flag = form_fields.get("skipivitables", "")
     if skip_residuals_flag:
-        oc.set_skipIVITables(1)
+        oc.set_skip_ivi_tables(1)
     else:
-        oc.set_skipIVITables(0)
+        oc.set_skip_ivi_tables(0)
 
 
 #
@@ -538,8 +538,8 @@ def handle_graph_options(oc, form_fields):
             "gfx" in form_fields,
             layout=lo,
             gephi="gephi" in form_fields,
-            hideIV="hide_isolated" in form_fields,
-            hideDV="hideDV" in form_fields,
+            hide_iv="hide_isolated" in form_fields,
+            hide_dv="hideDV" in form_fields,
             full_var_names="full_var_names" in form_fields,
             width=graph_width(),
             height=graph_height(),
