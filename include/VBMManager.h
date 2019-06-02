@@ -87,6 +87,10 @@ public:
         return projection;
     }
 
+    bool makeProjection(Table *t1, Table *t2, Relation *rel) {
+        return ManagerBase::makeProjection(t1, t2, rel);
+    }
+
     //-- get/set search object
     class SearchBase *getSearch() {
         return search;

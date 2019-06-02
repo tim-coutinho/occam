@@ -5,8 +5,13 @@ from wrappers.report import SortDirection
 from wrappers.vbm_manager import VBMManager
 from wrappers.manager import SearchDirection, SearchFilter
 from wrappers.model import ModelType
+from utils import CLIUtils
 from typing import Optional, Sequence
 import re
+
+
+class NewModelError(Exception):
+    pass
 
 
 class Fit:
@@ -24,7 +29,7 @@ class Fit:
         self._search_dir = search_dir
         self._start_model_name = start_model_name
         self._fit_model_names = fit_model_names
-        self._report = self.manager.get_report()
+        self.report = self.manager.get_report()
         self._skip_trained_model_table = True
         self._skip_ivi_tables = True
 
@@ -91,27 +96,26 @@ class Fit:
             self.manager.print_fit_report(model)
 
             self.manager.make_fit_table(model)
-
-            # TODO: Remove/replace with underlining functionality
-            self._report.add_model(model)
-            self._report.print_residuals(model=model,
-                                         skip_trained_model_table=self._skip_trained_model_table,
-                                         skip_ivi_tables=self._skip_ivi_tables
-                                         )
+            CLIUtils.print_residuals(model=model,
+                                     skip_trained_model_table=self._skip_trained_model_table,
+                                     skip_ivi_tables=self._skip_ivi_tables,
+                                     manager=self.manager,
+                                     report=self.report)
 
             if self._default_fit_model != "":
                 try:
                     default_model = self.manager.make_model(model_name=self._default_fit_model,
                                                             make_project=True
                                                             )
-                except Exception:
-                    print(f"\nERROR: Unable to create model {self._default_fit_model}")
-                    sys.exit(0)
-                self._report.set_default_fit_model(default_model)
-            self._report.print_conditional_dv(model=model,
-                                              calc_expected_dv=self._calc_expected_dv,
-                                              classifier_target=self.fit_classifier_target
-                                              )
+                    self.report.set_default_fit_model(default_model)
+
+                except Exception as ex:
+                    raise NewModelError(f"\nERROR: Unable to create model {self._default_fit_model}") from ex
+
+            self.report.print_conditional_dv(model=model,
+                                             calc_expected_dv=self._calc_expected_dv,
+                                             classifier_target=self.fit_classifier_target
+                                             )
 
             self.print_graph(model_name, True)
 

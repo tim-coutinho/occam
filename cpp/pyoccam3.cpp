@@ -52,6 +52,21 @@ struct P##type                  \
     int max_it_index;           \
 };
 
+#define ConvertPyObject(dst, obj, type)         \
+if(obj != Py_None)                              \
+{                                               \
+    if(!PyObject_TypeCheck(obj, &T##type))      \
+    {                                           \
+        dst = NULL;                             \
+    }                                           \
+                                                \
+    dst = ObjRef(obj, type);                    \
+}
+
+#define raise(exception, message)   \
+PyErr_SetString(exception, message);    \
+return NULL                            \
+
 //-- Trace output
 #ifdef TRACE_ON
 #define TRACE printf
@@ -74,6 +89,7 @@ DefinePyObject(Model);
 DefinePyObject(Report);
 DefinePyObject(Variable);
 DefinePyObject(Option);
+DefinePyObject(Table);
 
 DefineIterablePyObject(VariableList)
 
@@ -748,6 +764,142 @@ DefinePyFunction(VBMManager, getConst) {
     return Py_None;
 }
 
+DefinePyFunction(VBMManager, getNegativeConstant)
+{
+    VBMManager* manager = ObjRef(self, VBMManager);
+
+    return Py_BuildValue("d", manager->getNegativeConstant());
+}
+
+DefinePyFunction(VBMManager, getFunctionConstant)
+{
+    VBMManager* manager = ObjRef(self, VBMManager);
+
+    return Py_BuildValue("d", manager->getFunctionConstant());
+}
+
+DefinePyFunction(VBMManager, getInputData)
+{
+    VBMManager* manager = ObjRef(self, VBMManager);
+    Table* input_data = manager->getInputData();
+
+    if(!input_data)
+    {
+        Py_INCREF(Py_None);
+        return Py_None;
+    }
+
+    PTable *py_input_data = ObjNew(Table);
+    py_input_data->obj = input_data;
+    Py_INCREF(py_input_data);
+
+    return (PyObject*) py_input_data;
+}
+
+DefinePyFunction(VBMManager, makeProjection)
+{
+    PyObject *py_input_data;
+    PyObject *py_input_table;
+    PyObject *py_relation;
+
+    VBMManager* manager = ObjRef(self, VBMManager);
+    Table *input_data = NULL;
+    Table *input_table = NULL;
+    Relation *relation = NULL;
+
+    if(!PyArg_ParseTuple(args, "OOO", &py_input_data, &py_input_table, &py_relation))
+    {
+        raise(PyExc_RuntimeError, "Failed to parse the arguments.");
+    }
+
+    ConvertPyObject(input_data, py_input_data, Table);
+    ConvertPyObject(input_table, py_input_table, Table);
+    ConvertPyObject(relation, py_relation, Relation);
+
+    bool ret = manager->makeProjection(input_data, input_table, relation);
+
+    if(ret)
+    {
+        Py_RETURN_TRUE;
+    }
+        
+    Py_RETURN_FALSE;
+}
+
+//int hasTestData()
+DefinePyFunction(VBMManager, getTestData) {
+    VBMManager* manager = ObjRef(self, VBMManager);
+    Table *test_data = manager->getTestData();
+
+    if(!test_data)
+    {
+        Py_INCREF(Py_None);
+        return Py_None;
+    }
+
+    PTable *py_test_data = ObjNew(Table);
+    py_test_data->obj = test_data;
+    Py_INCREF(py_test_data);
+
+    return (PyObject*) py_test_data;
+}
+
+DefinePyFunction(VBMManager, getFitTable)
+{
+    VBMManager* manager = ObjRef(self, VBMManager);
+    Table* fit_table = manager->getFitTable();
+
+    if(!fit_table)
+    {
+        Py_INCREF(Py_None);
+        return Py_None;
+    }
+
+    PTable *py_fit_table = ObjNew(Table);
+    py_fit_table->obj = fit_table;
+    Py_INCREF(py_fit_table);
+
+    return (PyObject*) py_fit_table;
+}
+
+DefinePyFunction(VBMManager, getIndepTable)
+{
+    VBMManager* manager = ObjRef(self, VBMManager);
+    Table* indep_table = manager->getIndepTable();
+
+    if(!indep_table)
+    {
+        Py_INCREF(Py_None);
+        return Py_None;
+    }
+
+    PTable *py_indep_table = ObjNew(Table);
+    py_indep_table->obj = indep_table;
+    Py_INCREF(py_indep_table);
+
+    return (PyObject*) py_indep_table;
+}
+
+DefinePyFunction(VBMManager, projectedFit)
+{
+    PyObject *Prelation;
+    PyObject *Pmodel;
+
+    if(!PyArg_ParseTuple(args, "O!O!", &TRelation, &Prelation, &TModel, &Pmodel))
+        return NULL;
+
+
+    VBMManager* manager = ObjRef(self, VBMManager);
+    Relation* project_to = ObjRef(Prelation, Relation);
+    Model* fit_model = ObjRef(Pmodel, Model);
+
+    PTable *py_table = ObjNew(Table);
+    py_table->obj = manager->projectedFit(project_to, fit_model);
+    Py_INCREF(py_table);
+
+    return (PyObject*) py_table;
+}
+
 
 static struct PyMethodDef VBMManager_methods[] = {
         PyMethodDef(VBMManager, compareProgenitors),
@@ -797,6 +949,14 @@ static struct PyMethodDef VBMManager_methods[] = {
         PyMethodDef(VBMManager, setUseInverseNotation),
         PyMethodDef(VBMManager, setValuesAreFunctions),
         PyMethodDef(VBMManager, getConst),
+        PyMethodDef(VBMManager, getNegativeConstant),
+        PyMethodDef(VBMManager, getFunctionConstant),
+        PyMethodDef(VBMManager, makeProjection),
+        PyMethodDef(VBMManager, getTestData),
+        PyMethodDef(VBMManager, getFitTable),
+        PyMethodDef(VBMManager, getIndepTable),
+        PyMethodDef(VBMManager, getInputData),
+        PyMethodDef(VBMManager, projectedFit),
         { nullptr }
 };
 
@@ -1498,7 +1658,7 @@ DefinePyFunction(Relation, isIndependentOnly) {
 
 DefinePyFunction(Relation, getVariableCount) {
     Relation* rel = ObjRef(self, Relation);
-    return Py_BuildValue("i", (rel->getVariableCount()!= NULL));
+    return Py_BuildValue("i", rel->getVariableCount());
 }
 
 DefinePyFunction(Relation, getPrintName) {
@@ -1518,6 +1678,21 @@ DefinePyFunction(Relation, getVariable) {
     return Py_BuildValue("i", (rel->getVariable(index)!=NULL));
 }
 
+DefinePyFunction(Relation, getVariableList) {
+    Relation* relation = ObjRef(self, Relation);
+
+    if(!relation->getVariableList()) {
+      Py_INCREF(Py_None);
+      return Py_None;
+    }
+
+    PVariableList* varlist = ObjNew(VariableList);
+    varlist->obj = relation->getVariableList();
+
+    Py_INCREF(varlist);
+    return (PyObject*) varlist;
+}
+
 // Capstone Team A
 
 static struct PyMethodDef Relation_methods[] = {
@@ -1526,6 +1701,7 @@ static struct PyMethodDef Relation_methods[] = {
         PyMethodDef(Relation, getVariableCount),
         PyMethodDef(Relation, getPrintName),
         PyMethodDef(Relation, getVariable),
+        PyMethodDef(Relation, getVariableList),
         { nullptr }
 };
 
@@ -1729,7 +1905,7 @@ DefinePyFunction(Model, getPrintName)
 
 DefinePyFunction(Model, getRelationCount) {
     Model* mdl = ObjRef(self, Model);
-    return Py_BuildValue("i", (mdl->getRelationCount()!= NULL));
+    return Py_BuildValue("i", mdl->getRelationCount());
 }
 
 DefinePyFunction(Model, resetAttributeList) {
@@ -2067,6 +2243,105 @@ DefinePyFunction(Report, bestModelData) {
     return ret;
 }
 
+DefinePyFunction(Report, findLift) {
+    PyObject *Prelation;
+    double sample_size;
+    double lift;
+    double frequency;
+    char* state_name;
+
+
+    PyArg_ParseTuple(args, "O!ddds", &TRelation, &Prelation, &sample_size, &lift, &frequency, &state_name);
+    Relation *relation = ObjRef(Prelation, Relation);
+    Report* report = ObjRef(self, Report);
+
+    report->findLift(relation, sample_size, lift, state_name, frequency);
+
+     Py_INCREF(Py_None);
+    return Py_None;
+}
+
+DefinePyFunction(Report, findEntropies) {
+    PyObject *Prelation;
+    double h1;
+    double h2;
+    double h12;
+
+    PyArg_ParseTuple(args, "O!ddd", &TRelation, &Prelation, &h1, &h2, &h12);
+    Relation *relation = ObjRef(Prelation, Relation);
+    Report* report = ObjRef(self, Report);
+
+    report->findEntropies(relation, h1, h2, h12);
+
+     Py_INCREF(Py_None);
+    return Py_None;
+}
+
+
+DefinePyFunction(Report, printTable) {
+    PyObject *py_relation = NULL;
+    PyObject *py_fit_table = NULL;
+    PyObject *py_input_table = NULL;
+    PyObject *py_indep_table = NULL;
+
+    Report* report = ObjRef(self, Report);
+    Relation *relation = NULL;
+    Table *fit_table = NULL;
+    Table *input_table = NULL;
+    Table *indep_table =  NULL;
+
+    double adjust_constant;
+    double sample_size;
+    int print_lift;
+    int print_calc;
+
+    if(!PyArg_ParseTuple(args, "OOOOddii", &py_relation, &py_fit_table, &py_input_table, &py_indep_table,
+                         &adjust_constant, &sample_size, &print_lift, &print_calc))
+    {
+        raise(PyExc_RuntimeError, "Failed to parse the arguments.");
+    }
+
+    ConvertPyObject(relation, py_relation, Relation);
+    ConvertPyObject(fit_table, py_fit_table, Table);
+    ConvertPyObject(input_table, py_input_table, Table);
+    ConvertPyObject(indep_table, py_indep_table, Table);
+
+    report->printTable(stdout, relation, fit_table, input_table, indep_table, adjust_constant, sample_size, print_lift, print_calc);
+
+    Py_INCREF(Py_None);
+    return Py_None;
+}
+
+DefinePyFunction(Report, printSummary) {
+    PyObject *Pmodel;
+    double adjust_constant;
+
+    PyArg_ParseTuple(args, "O!d", &TModel, &Pmodel, &adjust_constant);
+
+    Report* report = ObjRef(self, Report);
+    Model *model = ObjRef(Pmodel, Model);
+
+    report->printSummary(stdout, model, adjust_constant);
+
+    Py_INCREF(Py_None);
+    return Py_None;
+}
+
+DefinePyFunction(Report, printDyadSummary) {
+    PyObject *py_model;
+
+    PyArg_ParseTuple(args, "O!d", &TModel, &py_model);
+
+    Report* report = ObjRef(self, Report);
+    Model *model = ObjRef(py_model, Model);
+
+    report->printDyadSummary(stdout, model);
+
+    Py_INCREF(Py_None);
+    return Py_None;
+}
+
+
 
 static struct PyMethodDef Report_methods[] = {
     PyMethodDef(Report, addModel),
@@ -2083,6 +2358,10 @@ static struct PyMethodDef Report_methods[] = {
     PyMethodDef(Report, sort),
     PyMethodDef(Report, variableList),
     PyMethodDef(Report, writeReport),
+    PyMethodDef(Report, findLift),
+    PyMethodDef(Report, findEntropies),
+    PyMethodDef(Report, printTable),
+    PyMethodDef(Report, printSummary),
     { nullptr }
 };
 
@@ -2363,6 +2642,93 @@ PyTypeObject TOption = {
     .tp_methods         = Option_methods,
 };
 
+static PyObject *
+Table_new(PyObject *self, PyObject *args)
+{
+    int key_size;
+    long long max_tuples;
+
+    if (!PyArg_ParseTuple(args, "iL", &key_size, &max_tuples))
+        return NULL;
+
+    Table *new_table = new Table(key_size, max_tuples);
+    PTable *py_new_table = ObjNew(Table);
+    py_new_table->obj = new_table;
+
+
+    Py_INCREF(py_new_table);
+    return (PyObject *)py_new_table;
+};
+
+DefinePyFunction(Table, getKeySize)
+{
+    Table* table = ObjRef(self, Table);
+
+    return Py_BuildValue("i", table->getKeySize());
+}
+
+DefinePyFunction(Table, getTupleCount)
+{
+    Table* table = ObjRef(self, Table);
+
+    return Py_BuildValue("i", table->getTupleCount());
+}
+
+DefinePyFunction(Table, copy)
+{
+    PyObject *Pother_table;
+    PyArg_ParseTuple(args, "O!", &TTable, &Pother_table);
+
+    Table* table = ObjRef(self, Table);
+    Table *other_table = ObjRef(Pother_table, Table);
+
+    table->copy(other_table);
+
+    Py_INCREF(Py_None);
+    return Py_None;
+}
+
+
+static struct PyMethodDef Table_methods[] =
+{
+    PyMethodDef(Table, getKeySize),
+    PyMethodDef(Table, getTupleCount),
+    PyMethodDef(Table, copy),
+    { nullptr }
+};
+
+PyTypeObject TTable = {
+    PyVarObject_HEAD_INIT(&PyType_Type, 0)
+    .tp_name            = "Table_cpp",
+    .tp_basicsize       = sizeof(PTable),
+    .tp_itemsize        = NULL,
+    .tp_dealloc         = nullptr,
+    .tp_print           = nullptr,
+    .tp_getattr         = nullptr,
+    .tp_setattr         = nullptr,
+    .tp_as_async        = nullptr,
+    .tp_repr            = nullptr,
+    .tp_as_number       = nullptr,
+    .tp_as_sequence     = nullptr,
+    .tp_as_mapping      = nullptr,
+    .tp_hash            = nullptr,
+    .tp_call            = nullptr,
+    .tp_str             = nullptr,
+    .tp_getattro        = nullptr,
+    .tp_setattro        = nullptr,
+    .tp_as_buffer       = nullptr,
+    .tp_flags           = Py_TPFLAGS_DEFAULT,
+    .tp_doc             = nullptr,
+    .tp_traverse        = nullptr,
+    .tp_clear           = nullptr,
+    .tp_richcompare     = nullptr,
+    .tp_weaklistoffset  = NULL,
+    .tp_iter            = nullptr,
+    .tp_iternext        = nullptr,
+    .tp_methods         = Table_methods,
+};
+
+
 /**************************/
 /****** MODULE LOGIC ******/
 /**************************/
@@ -2382,6 +2748,7 @@ static struct PyMethodDef occam_methods[] = {
     { "VBMManager",  (PyCFunction) VBMManager_new,  METH_VARARGS},
     { "SBMManager",  (PyCFunction) SBMManager_new,  METH_VARARGS},
     { "setHTMLMode", (PyCFunction) setHTMLMode,     METH_VARARGS},
+    { "Table",       (PyCFunction) Table_new,     METH_VARARGS},
     {nullptr}
 };
 
@@ -2414,6 +2781,8 @@ PyMODINIT_FUNC PyInit_occam(void)
     if (PyType_Ready(&TVariable) < 0)
         return NULL;
     if (PyType_Ready(&TOption) < 0)
+        return NULL;
+    if (PyType_Ready(&TTable) < 0)
         return NULL;
 
     return m;
