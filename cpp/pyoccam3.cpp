@@ -16,9 +16,22 @@
 #include "Options.h"
 #include <limits>
 #include <unistd.h>
+#include <typeinfo>
+#include <map>
 #include <Python.h>
 
 typedef ocOption Option;
+
+std::map<const char*, const char*> pytype_map {
+    {"int", "i"},
+};
+
+template <class T>
+struct Reference
+{
+    T value;
+};
+
 
 /***** MACROS *****/
 //-- Exit function on error
@@ -39,6 +52,75 @@ typedef ocOption Option;
 
 //-- Creates a new instance of a python wrapper type.
 #define ObjNew(type) ((P##type*)PyObject_NEW(P##type, &T##type))
+
+#define DefinePyRefObject(ref_type, ref_name)       \
+extern PyTypeObject T##ref_name;                \
+struct P##ref_name                              \
+{                                           \
+    PyObject_HEAD;                          \
+    Reference<ref_type> *obj;                   \
+};                                          \
+                                            \
+DefinePyFunction(ref_name, getValue)          \
+{                                           \
+    Reference<ref_type>* reference = ObjRef(self, ref_name);   \
+    return Py_BuildValue(pytype_map[#ref_type], reference->value); \
+}                                                       \
+                                                        \
+static struct PyMethodDef ref_name##_methods[] =              \
+{                                                       \
+    PyMethodDef(ref_name, getValue),                        \
+    { nullptr }                                         \
+};                                                      \
+                                                        \
+static PyObject *ref_name##_new(PyObject *self, PyObject *args)   \
+{                                                           \
+    Reference<ref_type>* reference = new Reference<ref_type>();     \
+    ref_type value;                                             \
+                                                            \
+    if(!PyArg_ParseTuple(args, pytype_map[#ref_type], &value))  \
+            return NULL;                                    \
+                                                            \
+    reference->value = value;                              \
+                                                            \
+    P##ref_name* py_new_reference = ObjNew(ref_name);               \
+    py_new_reference->obj = reference;                      \
+                                                            \
+    Py_INCREF(py_new_reference);                            \
+    return (PyObject *)py_new_reference;                     \
+};                                                          \
+                                                            \
+PyTypeObject T##ref_name = {                                \
+    PyVarObject_HEAD_INIT(&PyType_Type, 0)              \
+    .tp_name            = #ref_name"_cpp",                        \
+    .tp_basicsize       = sizeof(P##ref_name),       \
+    .tp_itemsize        = NULL,                         \
+    .tp_dealloc         = nullptr,                      \
+    .tp_print           = nullptr,                      \
+    .tp_getattr         = nullptr,                      \
+    .tp_setattr         = nullptr,                      \
+    .tp_as_async        = nullptr,                      \
+    .tp_repr            = nullptr,                      \
+    .tp_as_number       = nullptr,                      \
+    .tp_as_sequence     = nullptr,                      \
+    .tp_as_mapping      = nullptr,                      \
+    .tp_hash            = nullptr,                      \
+    .tp_call            = nullptr,                      \
+    .tp_str             = nullptr,                      \
+    .tp_getattro        = nullptr,                      \
+    .tp_setattro        = nullptr,                      \
+    .tp_as_buffer       = nullptr,                      \
+    .tp_flags           = Py_TPFLAGS_DEFAULT,           \
+    .tp_doc             = nullptr,                      \
+    .tp_traverse        = nullptr,                      \
+    .tp_clear           = nullptr,                      \
+    .tp_richcompare     = nullptr,                      \
+    .tp_weaklistoffset  = NULL,                         \
+    .tp_iter            = nullptr,                      \
+    .tp_iternext        = nullptr,                      \
+    .tp_methods         = ref_name##_methods               \
+};
+
 
 // Define the struct for a PyObject type which carries a pointer to an instance
 // of the actual type and indexes used by iterators
@@ -91,6 +173,8 @@ DefinePyObject(Variable);
 DefinePyObject(Option);
 DefinePyObject(Table);
 
+DefinePyRefObject(int, IntRef);
+
 DefineIterablePyObject(VariableList)
 
 
@@ -99,7 +183,7 @@ DefineIterablePyObject(VariableList)
 /**************************/
 
 /****** Methods ******/
-
+                                      
 static PyObject *
 VBMManager_new(PyObject *self, PyObject *args)
 {
@@ -763,7 +847,6 @@ DefinePyFunction(VBMManager, getConst) {
     Py_INCREF(Py_None);
     return Py_None;
 }
-
 DefinePyFunction(VBMManager, getNegativeConstant)
 {
     VBMManager* manager = ObjRef(self, VBMManager);
@@ -2749,6 +2832,7 @@ static struct PyMethodDef occam_methods[] = {
     { "SBMManager",  (PyCFunction) SBMManager_new,  METH_VARARGS},
     { "setHTMLMode", (PyCFunction) setHTMLMode,     METH_VARARGS},
     { "Table",       (PyCFunction) Table_new,     METH_VARARGS},
+    { "IntRef",       (PyCFunction) IntRef_new,     METH_VARARGS},
     {nullptr}
 };
 
@@ -2783,6 +2867,8 @@ PyMODINIT_FUNC PyInit_occam(void)
     if (PyType_Ready(&TOption) < 0)
         return NULL;
     if (PyType_Ready(&TTable) < 0)
+        return NULL;
+    if (PyType_Ready(&TIntRef) < 0)
         return NULL;
 
     return m;
