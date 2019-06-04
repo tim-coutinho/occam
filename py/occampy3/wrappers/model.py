@@ -1,5 +1,5 @@
 from enum import Enum
-from typing import List, Union
+from typing import Union
 
 
 class ModelType(Enum):
@@ -15,16 +15,21 @@ class Model:
 
     def __init__(self, ref=None) -> None:
         """
-        :param: ref: Reference to the Model object returned from the CPP engine
+        :param: ref: the reference to the Model object returned from the CPP engine
         """
         # Create new reference if one not given
-        self.ref = ref
+        self._ref = ref
+        self._id = 0
 
     def __lt__(self, other: 'Model') -> bool:
         return self.name < other.name
 
     def __eq__(self, other: 'Model') -> bool:
-        return self.ref.isEquivalentTo(other.ref)
+        return self._ref.isEquivalentTo(other.ref)
+
+    @property
+    def ref(self):
+        return self._ref
 
     @property
     def name(self) -> str:
@@ -32,40 +37,56 @@ class Model:
 
     @property
     def print_name(self) -> str:
-        return self.ref.getPrintName()
+        return self._ref.getPrintName()
 
-    def set_id(self, id_: int) -> None:
-        self.ref.setID(id_)
+    @property
+    def id_(self) -> int:
+        return self._id
 
-    id_ = property(fset=set_id)
+    @id_.setter
+    def id_(self, id_: int) -> None:
+        self._id = id_
 
-    def make_fit_table(self, model) -> None:
-        self.ref.makeFitTable(model)
+    @property
+    def fit_table(self) -> None:
+        pass
 
-    def delete_fit_table(self) -> None:
-        self.ref.deleteFitTable()
+    @fit_table.setter
+    def fit_table(self, model) -> None:
+        self._ref.makeFitTable(model)
+
+    @fit_table.deleter
+    def fit_table(self):
+        self._ref.deleteFitTable()
+
+    def set(self, **kwargs):
+        pass
 
     @property
     def print_name(self) -> str:
-        return self.ref.getPrintName()
+        return self._ref.getPrintName()
+
+    def get_struct_matrix(self) -> list:
+        return self._ref.getStructMatrix()
 
     @property
-    def struct_matrix(self) -> List[int]:
-        return self.ref.getStructMatrix()
+    def ref(self):
+        return self._ref
 
-    def is_equivalent_to(self, other: 'Model') -> bool:
-        return self == other
+    def is_equivalent_to(self) -> bool:
+        return self._ref.isEquivalentTo()
 
     def set_progenitor(self, progenitor: 'Model') -> None:
-        self.ref.setProgenitor(progenitor.ref)
-
-    progenitor = property(fset=set_progenitor)
+        self._ref.setProgenitor(progenitor.ref)
 
     def get_attribute_value(self, attribute: str) -> Union[str, float]:
-        return self.ref.get(attribute)
+        return self._ref.get(attribute)
 
-    def delete_relation_links(self) -> None:
-        self.ref.deleteRelationLinks()
+    def delete_fit_table(self) -> None:
+        self._ref.deleteFitTable()
+
+    def delete_relation_links(self):
+        self._ref.deleteRelationLinks()
 
     def dump(self) -> None:
-        self.ref.dump()
+        self._ref.dump()

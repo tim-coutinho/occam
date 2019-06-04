@@ -15,12 +15,14 @@ from typing import List
 class Search:
 
     def __init__(self, opt: str):
-        if opt == "VB":
-            self._manager = VBMManager()
-            self._manager_type = "VB"
-        else:
-            self._manager = SBMManager()
-            self._manager_type = "SB"
+        # if opt == "VB":
+        #     self._manager = VBMManager()
+        #     self._manager_type = "VB"
+        # else:
+        #     self._manager = SBMManager()
+        #     self._manager_type = "SB"
+        self._manager = VBMManager()
+        self._manager_type = "VB"
         self._alpha_threshold = 0.05
         self._bp_statistics = 0
         self._data_file = ""
@@ -56,6 +58,7 @@ class Search:
         self._values_are_functions = False
 
     def execute(self, datafile: Sequence[str]):
+        start = Model()
         if self._manager_type == "VB":
             self._manager = VBMManager()
         else:
@@ -79,25 +82,23 @@ class Search:
                         raise Exception('ERROR: Neutral Down Chain Search not yet implemented.')
         #Shared for SB and VB
         if self._start_model == "":
-            self._start_model = ModelType.DEFAULT
+            self._start_model = "default"
         if self._search_dir == SearchDirection.DEFAULT:
-            self._search_dir = SearchDirection.UP
-
-        if (
-            self._search_filter == SearchFilter.CHAIN or self._start_model == ModelType.DEFAULT
-        ) and self._search_dir == SearchDirection.DOWN:
-            self._start_model = ModelType.TOP
-        elif (
-            self._search_filter == SearchFilter.CHAIN or self._start_model == ModelType.DEFAULT
-        ) and self._search_dir == SearchDirection.UP:
-            self._start_model = ModelType.BOTTOM
-        if self._start_model == ModelType.TOP:
-            start = self._manager.get_top_ref_model()
-        elif self._start_model == ModelType.BOTTOM:
-            start = self._manager.get_bottom_ref_model()
+            self._search_dir = "up"
+        if (self._search_filter == SearchFilter.CHAIN or self._start_model == ModelType.DEFAULT) and self._search_dir == SearchDirection.DOWN:
+            print("top")
+            self._start_model ="top"
+        elif (self._search_filter == SearchFilter.CHAIN or self._start_model == ModelType.DEFAULT) and self._search_dir == SearchDirection.UP:
+            print("bottom")
+            self._start_model = "bottom"
+        print(self._search_dir)
+        if self._start_model == "top":
+            self._manager.top_ref_model(start)
+        elif self._start_model == "bottom":
+            start = self._manager.bottom_ref_model()
         else:
-            print(self._start_model)
-            start = self._manager.make_model(self._start_model, True)
+            # start = self._manager.make_model(self._start_model, True)
+            self._manager.bottom_ref_model(start)
         self._manager.set_ref_model(self._ref_model)
         #If manager type is VB
         if self._manager_type == "VB":

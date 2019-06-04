@@ -5,5 +5,5 @@ sys.path.insert(0, "./wrappers")
 
 from search import Search
 
-search = Search("VB")
+search = Search("SB")
 search.execute(sys.argv[0:2])
