@@ -86,19 +86,15 @@ class Search:
         if self._search_dir == SearchDirection.DEFAULT:
             self._search_dir = "up"
         if (self._search_filter == SearchFilter.CHAIN or self._start_model == ModelType.DEFAULT) and self._search_dir == SearchDirection.DOWN:
-            print("top")
             self._start_model ="top"
         elif (self._search_filter == SearchFilter.CHAIN or self._start_model == ModelType.DEFAULT) and self._search_dir == SearchDirection.UP:
-            print("bottom")
             self._start_model = "bottom"
-        print(self._search_dir)
         if self._start_model == "top":
             self._manager.top_ref_model(start)
         elif self._start_model == "bottom":
             start = self._manager.bottom_ref_model()
         else:
-            # start = self._manager.make_model(self._start_model, True)
-            self._manager.bottom_ref_model(start)
+            start = self._manager.make_model(self._start_model, True)
         self._manager.set_ref_model(self._ref_model)
         #If manager type is VB
         if self._manager_type == "VB":
