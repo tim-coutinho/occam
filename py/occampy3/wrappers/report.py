@@ -1,6 +1,9 @@
 from enum import Enum
 from model import Model
+from relation import Relation
 from variable_list import VariableList
+from table import Table
+from typing import Optional
 
 
 class SeparatorType(Enum):
@@ -49,6 +52,16 @@ class Report:
     def print_residuals(self, model: Model, skip_trained_model_table: bool, skip_ivi_tables: bool) -> None:
         self._ref.printResiduals(model.ref, skip_trained_model_table, skip_ivi_tables)
 
+    def print_table(self, relation: Optional[Relation], fit_table: Optional[Table], input_table: Table,
+                    indep_table: Table, adjust_constant: float, sample_size: float,
+                    print_lift: bool, print_calc: bool) -> None:
+
+        rel = relation.ref if relation is not None else None
+        fit = fit_table.ref if fit_table is not None else None
+
+        self._ref.printTable(rel, fit, input_table.ref, indep_table.ref, adjust_constant, sample_size,
+                             print_lift, print_calc)
+
     def set_attributes(self, attributes: str) -> None:
         self._ref.setAttributes(attributes)
 
@@ -60,6 +73,9 @@ class Report:
 
     def print_report(self) -> None:
         self._ref.printReport()
+
+    def print_dyad_summary(self, model: Model) -> None:
+        self._ref.printDyadSummary(model.ref)
 
     def get_separator(self) -> int:
         self._ref.getSeparator()

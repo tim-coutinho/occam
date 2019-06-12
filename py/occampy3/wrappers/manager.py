@@ -2,7 +2,9 @@ from enum import Enum
 from model import Model
 from report import Report
 from option import Option
-from typing import Sequence, Union
+from table import Table
+from relation import Relation
+from typing import Sequence, Union, Optional
 
 
 class SearchDirection(Enum):
@@ -76,11 +78,43 @@ class Manager:
     def sample_size(self) -> int:
         return int(self._ref.getSampleSz())
 
+    @property
+    def function_constant(self) -> float:
+        return self._ref.getFunctionConstant()
+
+    @property
+    def negative_constant(self) -> float:
+        return self._ref.getNegativeConstant()
+
+    @property
+    def input_data(self) -> Table:
+        return Table.from_ref(self._ref.getInputData())
+
+    @property
+    def test_data(self) -> Optional[Table]:
+        return Table.from_ref(self._ref.getTestData())
+
+    @property
+    def fit_table(self) -> Table:
+        return Table.from_ref(self._ref.getFitTable())
+
+    @property
+    def indep_table(self) -> Table:
+        return Table.from_ref(self._ref.getIndepTable())
+
     def all_options(self) -> Sequence[Option]:
         return [Option(option_ref) for option_ref in self._ref.getAllOptions()]
 
     def set(self, **kwargs):
         pass
+
+    def make_projection(self, input_data: Optional[Table], input_table: Table, relation: Relation) -> bool:
+        input_ = input_data.ref if input_data is not None else None
+
+        return self._ref.makeProjection(input_, input_table.ref, relation.ref)
+
+    def projected_fit(self, relation: Relation, model: Model) -> Table:
+        return Table.from_ref(self._ref.projectedFit(relation.ref, model.ref))
 
     def get_report(self) -> Report:
         return Report(self._ref.Report())
@@ -161,6 +195,9 @@ class Manager:
 
     def print_options(self, print_html: bool, skip_nominal: bool) -> None:
         self._ref.printOptions(print_html, skip_nominal)
+
+    def print_summary(self, model: Model, adjust_constant: float) -> None:
+        self._ref.printSummary(model.ref, adjust_constant)
 
     # TODO: remove and replace with the underlying functionality in the future
     def print_basic_statistics(self) -> None:

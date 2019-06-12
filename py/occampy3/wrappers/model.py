@@ -1,5 +1,6 @@
 from enum import Enum
 from typing import Union
+from relation import Relation
 
 
 class ModelType(Enum):
@@ -63,8 +64,8 @@ class Model:
         pass
 
     @property
-    def print_name(self) -> str:
-        return self._ref.getPrintName()
+    def relation_count(self) -> int:
+        return self._ref.getRelationCount()
 
     def get_struct_matrix(self) -> list:
         return self._ref.getStructMatrix()
@@ -90,3 +91,6 @@ class Model:
 
     def dump(self) -> None:
         self._ref.dump()
+
+    def get_relation(self, idx: int):
+        return Relation(self._ref.getRelation(idx))
