@@ -1518,6 +1518,25 @@ DefinePyFunction(Relation, getVariable) {
     return Py_BuildValue("i", (rel->getVariable(index)!=NULL));
 }
 
+DefinePyFunction(Relation, getVariableList)
+{
+    Relation* rel = ObjRef(self, Relation);
+    VariableList *variable_list = rel->getVariableList();
+
+    //Variable list is NULL
+    if(!variable_list)
+    {
+       Py_INCREF(Py_None);
+       return Py_None;
+    }
+
+    PVariableList *py_variable_list = ObjNew(VariableList);
+    py_variable_list->obj = variable_list;
+    Py_INCREF(py_variable_list);
+
+    return (PyObject*) py_variable_list;
+}
+
 // Capstone Team A
 
 static struct PyMethodDef Relation_methods[] = {
@@ -1526,6 +1545,7 @@ static struct PyMethodDef Relation_methods[] = {
         PyMethodDef(Relation, getVariableCount),
         PyMethodDef(Relation, getPrintName),
         PyMethodDef(Relation, getVariable),
+        PyMethodDef(Relation, getVariableList),
         { nullptr }
 };
 

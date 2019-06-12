@@ -73,6 +73,7 @@ class Report {
 	void print(int fnum);	// use a file number instead of FILE*
 	//-- Set report separator type: 1=tab, 2=comma, 3=space filled
 	void setSeparator(int sep) { separator = sep; }
+  int getSeparator() {return separator;}
 
 	//-- HTML Mode - changes formatting
 	static bool isHTMLMode() {return htmlMode; }
@@ -102,7 +103,7 @@ class Report {
     // static variables
     // used several places, such as Report::print
     static int maxNameLength;
-	
+
     class ManagerBase *manager;
 
 	static bool htmlMode;
@@ -119,7 +120,7 @@ class Report {
 
     void printTableRow(FILE* fd, bool blue, VariableList* vl, int var_count, Relation* rel, double value, KeySegment* refkey, double refvalue, double iviValue, double adjustConstant, double sample_size, bool printLift, bool printCalc);
     void printTable(FILE* fd, Relation* rel, Table* fit_table, Table* input_table, Table* indep_table, double adjustConstant, double sample_size, bool printLift, bool printCalc);
-    
+
     void printTestData(FILE* fd, Relation* rel, Table* fit_table, Table* indep_table, double adjustConstant, int keysize, bool printCalc, bool printLift);
 
     void printDyadSummary(FILE* fd, Model* model);
